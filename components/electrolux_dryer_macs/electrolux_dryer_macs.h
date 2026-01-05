@@ -7,16 +7,22 @@
 #include "esphome/components/uart/uart.h"
 #include "esphome/core/log.h"
 #include "esphome/core/defines.h"
+#include "esphome/components/electrolux_macs/electrolux_macs.h"
 
 #include <vector>
 
 namespace esphome {
 namespace electrolux_dryer_macs {
 
-class ElectroluxDryerMacsComponent : public Component, public uart::UARTDevice {
- public:
-  ElectroluxDryerMacsComponent(uart::UARTComponent *uart) : uart::UARTDevice(uart) {}
+static const uint8_t MACS_DRYER_DRYING_PHASE_IDLE = 0x0B;
+static const uint8_t MACS_DRYER_DRYING_PHASE_HEATING = 0x01;
+static const uint8_t MACS_DRYER_DRYING_PHASE_COOLING = 0x02;
+static const uint8_t MACS_DRYER_DRYING_PHASE_ANTI_CREASE = 0x04;
 
+class ElectroluxDryerMacsComponent : public esphome::electrolux_macs::ElectroluxMacsComponent {
+ public:
+   ElectroluxDryerMacsComponent(uart::UARTComponent *uart) : esphome::electrolux_macs::ElectroluxMacsComponent(uart) {}
+ 
 #ifdef USE_SENSOR
   SUB_SENSOR(remaining_time)
   SUB_SENSOR(start_delay_time)
@@ -24,9 +30,9 @@ class ElectroluxDryerMacsComponent : public Component, public uart::UARTDevice {
   SUB_SENSOR(program_dryness_level)
 #endif
 
-#ifdef USE_TEXT_SENSOR
-  SUB_TEXT_SENSOR(selected_program_name)
-#endif
+//#ifdef USE_TEXT_SENSOR
+//  SUB_TEXT_SENSOR(selected_program_name)
+//#endif
 
 #ifdef USE_BINARY_SENSOR
   SUB_BINARY_SENSOR(powered_on)
@@ -35,25 +41,8 @@ class ElectroluxDryerMacsComponent : public Component, public uart::UARTDevice {
   SUB_BINARY_SENSOR(heating)
 #endif
 
-  void setup() override;
-  void loop() override;
-  void dump_config() override;
-  
-  // float get_setup_priority() const override { return esphome::setup_priority::HARDWARE_LATE; }
-
-  void set_crc_check(bool crc_check) { this->crc_check_ = crc_check; }
-  void set_receive_timeout(uint32_t receive_timeout) { this->receive_timeout_ = receive_timeout; }
-
  protected:
-  void decode_data_(std::vector<uint8_t> data);
-  
-  std::vector<uint8_t> data_;
-  bool receiving_{false};
-  uint8_t data_count_{0};
-  uint32_t last_transmission_{0};
-  
-  uint32_t receive_timeout_{200};
-  bool crc_check_{false};
+  void decode_data_(uint8_t target, uint8_t source, std::vector<uint8_t> data) override;
 
 };
 }  // namespace electrolux_dryer_macs
