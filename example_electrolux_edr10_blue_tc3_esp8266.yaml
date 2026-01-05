@@ -4,11 +4,11 @@ esphome:
   comment: "Electrolux Dryer"
   name_add_mac_suffix: true
   project:
-    name: "agocsdaniel.electrolux_dryer_macs"
+    name: "agocsdaniel.electrolux_macs"
     version: 1.0.0
     
 external_components:
-  - source: github://agocsdaniel/electrolux_dryer_macs
+  - source: github://agocsdaniel/esphome_electrolux_macs
       
 esp8266:
   board: d1_mini
@@ -43,10 +43,14 @@ captive_portal:
 status_led:
   pin: GPIO2    
   
-# On ESP8266 this doesn't work with HW UART, so use different pins at least for the TX. This causes that esphome will use SW UART.
+# On ESP8266 this might not work with HW UART, so use different pins at least for the TX, which causes esphome will fallback to SW UART.
 uart:
   id: uart_macs
-  tx_pin: 13
+  tx_pin: 13 # Random pin for SW UART
+#  tx_pin: # HW UART TX
+#    number: 1 # TX
+#    inverted: true
+#    mode: OPEN_DRAIN
   rx_pin:
     number: 3  # RX
     inverted: true

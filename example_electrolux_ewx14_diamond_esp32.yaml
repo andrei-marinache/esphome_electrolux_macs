@@ -1,0 +1,143 @@
+esphome:
+  name: electrolux-ewx14-dia-tc3
+  friendly_name: "Electrolux Washing Machine"
+  comment: "Electrolux Washing Machine"
+  name_add_mac_suffix: true
+  project:
+    name: "agocsdaniel.electrolux_macs"
+    version: 1.0.0
+  platformio_options:
+    board_build.f_flash: 40000000L
+    board_build.flash_mode: dio
+    board_build.flash_size: 4MB
+    
+external_components:
+  - source: github://agocsdaniel/esphome_electrolux_macs
+
+esp32:
+  board: esp32-c3-devkitm-1
+  variant: esp32c3
+  framework:
+    type: esp-idf
+    version: recommended
+
+debug:
+  update_interval: 10s
+  
+# Enable logging
+logger:
+  baud_rate: 115200
+  level: DEBUG
+  
+# Enable Home Assistant API
+api:
+
+ota:
+  - platform: esphome
+    password: ""
+
+network:
+    enable_ipv6: true
+
+web_server:
+
+wifi:
+  ssid: ""
+  password: ""
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    password: ""
+  fast_connect: true
+  enable_rrm: true
+
+captive_portal:
+
+#######################################
+# Device specific Config Begins Below #
+#######################################
+
+status_led:
+  pin: GPIO8
+
+uart:
+  id: uart_macs
+  tx_pin:
+    number: GPIO0
+    inverted: true
+    mode: OUTPUT_OPEN_DRAIN
+  rx_pin:
+    number: GPIO1
+    inverted: true
+    mode: INPUT
+  baud_rate: 9600
+  parity: EVEN
+
+electrolux_washing_machine_macs:
+  uart_id: uart_macs
+
+sensor:
+  - platform: electrolux_washing_machine_macs
+    selected_program_number:
+      id: washing_machine_selected_program_number
+      name: "Selected program number"
+      on_value:
+        then:
+          - lambda: |-
+              id(washing_machine_selected_program_name).publish_state(id(washing_machine_program_names)[id(washing_machine_selected_program_number).state]);
+    remaining_time:
+      name: "Remaining time"
+    start_delay_time:
+      name: "Start delay"
+    time_manager:
+      name: "Time manager"
+    wash_temperature:
+      name: "Wash temperature"
+    spin_speed:
+      name: "Spin speed"
+      
+binary_sensor:
+  - platform: electrolux_washing_machine_macs
+    powered_on:
+      name: "Powered on"
+    running:
+      name: "Running"
+    door_locked:
+      name: "Door locked"
+    pre_wash_enabled:
+      name: "Pre-wash enabled"
+    stain_wash:
+      name: "Stain wash"
+    extra_rinse:
+      name: "Extra rinse"
+    soft_plus:
+      name: "Soft plus"
+    easy_iron:
+      name: "Easy iron"
+
+mapping:
+  - id: washing_machine_program_names
+    from: int
+    to: string
+    entries:
+      0: "Reset"
+      1: "Eco 40/60"
+      2: "Cotton"
+      3: "Synthetic"
+      4: "Delicate"
+      5: "Quick 14"
+      6: "Rinse"
+      7: "Spin & drain"
+      8: "Anti-allergy"
+      9: "Baby"
+      10: "Silk"
+      11: "Wool"
+      12: "Sport"
+      13: "Outdoor"
+      14: "Denim"
+
+text_sensor:
+  - platform: template
+    id: washing_machine_selected_program_name
+    name: "Selected program"
+
+

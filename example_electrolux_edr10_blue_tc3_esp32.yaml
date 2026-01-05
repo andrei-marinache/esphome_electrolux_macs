@@ -1,0 +1,127 @@
+esphome:
+  name: electrolux-edr10-blue
+  friendly_name: "Electrolux Dryer"
+  comment: "Electrolux Dryer"
+  name_add_mac_suffix: true
+  project:
+    name: "agocsdaniel.electrolux_macs"
+    version: 1.0.0
+  platformio_options:
+    board_build.f_flash: 40000000L
+    board_build.flash_mode: dio
+    board_build.flash_size: 4MB
+    
+external_components:
+  - source: github://agocsdaniel/esphome_electrolux_macs
+
+esp32:
+  board: esp32-c3-devkitm-1
+  variant: esp32c3
+  framework:
+    type: esp-idf
+    version: recommended
+
+debug:
+  update_interval: 10s
+  
+# Enable logging
+logger:
+  baud_rate: 115200
+  level: DEBUG
+  
+# Enable Home Assistant API
+api:
+
+ota:
+  - platform: esphome
+    password: ""
+
+network:
+    enable_ipv6: true
+    
+wifi:
+  ssid: ""
+  password: ""
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    password: ""
+  fast_connect: true
+  enable_rrm: true
+
+captive_portal:
+
+#######################################
+# Device specific Config Begins Below #
+#######################################
+
+status_led:
+  pin: GPIO8
+
+uart:
+  id: uart_macs
+  tx_pin:
+    number: GPIO0
+    inverted: true
+    mode: OUTPUT_OPEN_DRAIN
+  rx_pin:
+    number: GPIO1
+    inverted: true
+    mode: INPUT
+  baud_rate: 9600
+  parity: EVEN
+
+electrolux_dryer_macs:
+  uart_id: uart_macs
+
+sensor:
+  - platform: electrolux_dryer_macs
+    selected_program_number:
+      id: dryer_selected_program_number
+      name: "Selected program number"
+      on_value:
+        then:
+          - lambda: |-
+              id(dryer_selected_program_name).publish_state(id(dryer_program_names)[id(dryer_selected_program_number).state]);
+    remaining_time:
+      name: "Remaining time"
+    start_delay_time:
+      name: "Start delay"
+    program_dryness_level:
+      name: "Program dryness level"
+
+binary_sensor:
+  - platform: electrolux_dryer_macs
+    powered_on:
+      name: "Powered on"
+    running:
+      name: "Drying"
+    delicate_mode:
+      name: "Delicate mode"
+    heating:
+      name: "Heating"
+
+mapping:
+  - id: dryer_program_names
+    from: int
+    to: string
+    entries:
+      1: "Cotton extra dry"
+      2: "Cotton cupboard dry+"
+      3: "Cotton cupboard dry"
+      4: "Cotton iron dry"
+      5: "Rapid"
+      6: "Custom time drying"
+      7: "Refresh"
+      8: "Wool"
+      9: "Delicates"
+      10: "Bed sheets"
+      11: "Easy iron"
+      12: "Synthetics iron dry"
+      13: "Synthetics cupboard dry"
+      14: "Synthetics extra dry"
+
+text_sensor:
+  - platform: template
+    id: dryer_selected_program_name
+    name: "Selected program"
+

@@ -1,4 +1,5 @@
 *
 !*.md
 !components/**
+!example_*.yaml
 *.pyc
