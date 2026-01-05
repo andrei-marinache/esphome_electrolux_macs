@@ -6,13 +6,15 @@ This is a small project to integrate my dryer to Home Assistant.
 
 ### Compatible units
 
-Actually every Electrolux / AEG / Zanussi dryer with EDR10/12/14/16 controller should be compatible, but I have only tested this on mine.
+Actually most Electrolux / AEG / Zanussi appliances with EDR and EWX controllers should be compatible, but I have only tested this on mine.
 
 Tested compatible models:
 
-| Brand           | Model             | 
-|-----------------|-------------------|
-| Electrolux      | EDC2086GDW        |
+| Brand           | Model             | Type                 |
+|-----------------|-------------------|----------------------|
+| Electrolux      | EDC2086GDW        | Dryer                |
+| Electrolux      | EW6SN347SHI       | Washing machine      |
+
 
 If you have access and motivation to add new devices, feel free to open an issue with your findings. Please don't make requests without at least serial dumps, I won't buy a dryer just to help you.
 

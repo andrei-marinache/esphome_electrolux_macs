@@ -9,7 +9,9 @@
 namespace esphome {
 namespace electrolux_macs {
 
+static const uint8_t MACS_ID_WM_CONTROLLER = 0x21;
 static const uint8_t MACS_ID_DRYER_CONTROLLER = 0x22;
+static const uint8_t MACS_ID_INVERTER = 0x25;
 static const uint8_t MACS_ID_FRONT_PANEL = 0x2A;
 
 static const uint8_t MACS_MESSAGE_MARKER = 0xC9;
