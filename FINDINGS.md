@@ -123,15 +123,23 @@ Below all the numbers are purely the data field inside the message frame. All he
 ```
 51 - change state
    00 
-      60 00 80 1B 03 - start drying
-      60 00 02 1B 03 - start drying (program 1, delicate)
+      60 - start drying
+         00 
+            80 - start drying
+            02 - start drying (program 1, delicate)
+               1B 03
       62 - pause drying
-      7D 
+      7D - power on/off
          04 - sent after power up or timeout
          08 - sent when pressing power button
          00 - * sent twice with this but with the same other parameters
             00 - power off
             01 - power on
+
+51 00 60 00 02 1B 03
+51 00 7D 00 01
+51 00 7D 08 00
+51 00 7D 08 01
 ```
 
 
@@ -149,25 +157,25 @@ Below all the numbers are purely the data field inside the message frame. All he
          02 - drying, cooling phase
          04 - drying, anti-crease phase (pre-finished)
             00 
-               00 00 00 - drying
-               02 00 00 - mid drying after ~20 mins
-               04 00 00 - mid drying after ~40 mins
-               05 00 00 - mid drying after ~50 mins
-               07 00 00 - mid drying in last 10 minutes
-               00 00 04 - drying pre-finished, (time program, 10 mins), anti-crease?
-               05 00 05 - drying pre-finished, (cotton cupboard dry program), anti-crease, water, filter
-               07 00 05 - drying pre-finished, (cotton extra dry program), anti-crease?, water?, filter?
-               00 00 05 - drying finished, (cotton cupboard dry program), anti-crease, water, filter, after 30min anti-crease
+               xx - current dryness level (from 0 to the target defined by the program, not sending every step)
+               00 - considered wet when drying is in progress, otherwise 0 is just the default
+                  00
+                     xx - clean required for item (bits)
+                     01 - lint filter
+                     02 - condenser
+                     04 - water tank
                         03 - power on, transient state
                         01 - power on, ready
-                           00 00                    
+                           00 00
 
       01 00 00 00 00 00 03 00 00 - power on, initializing ???
       01 00 00 00 00 00 01 00 00 - power on, ready, no program running
       02 01 00 00 00 00 01 00 00 - drying
+      02 01 00 05 00 00 01 00 00 - during drying
+      02 02 00 06 00 00 01 00 00 - during drying, time changed from 46 mins to 10 mins
       02 04 00 00 00 04 01 00 00 - drying finished, (time program, 10 mins), anti-crease?, filter?
       02 04 00 05 00 05 01 00 00 - drying finished, (cotton cupboard dry program), anti-crease, water, filter
-      02 04 00 07 00 05 01 00 00 - drying finished, (cotton extra dry program), anti-crease?, water?, filter?
+      02 04 00 07 00 05 01 00 00 - drying finished, (cotton extra dry program), anti-crease?, water?, filter?, condenser?
       03 00 00 00 00 05 01 00 00 - drying finished, (cotton cupboard dry program), anti-crease, water, filter, after 30min anti-crease
       04 01 00 00 00 00 01 00 00 - drying paused
       0B 00 00 00 00 00 01 00 00 - stop drying, powering off
@@ -197,7 +205,7 @@ Below all the numbers are purely the data field inside the message frame. All he
                            00 00 - program time as specified in program
                            00 0A - program time 10 minutes
                            xx xx - program time in minutes
-                                 06 - program 6
+                                 xx - program number
 ```
 
 ```                               
