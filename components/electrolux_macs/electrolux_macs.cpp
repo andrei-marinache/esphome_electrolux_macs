@@ -64,27 +64,45 @@ void ElectroluxMacsComponent::loop() {
   }
 }
 
-void ElectroluxMacsComponent::process_data_(std::vector<uint8_t> frame) {
-  uint8_t marker_ = frame[0];
-  uint8_t target_ = frame[1];
-  uint8_t source_ = frame[2];
-  uint8_t length_ = frame[3];
-  
-  if (length_ == 0) return;
-  if (5 + length_ < frame.size()) return;
-  std::vector<uint8_t> data(&frame[4], &frame[4 + length_]);
-  uint8_t checksum_ = frame[4 + length_]; // Last byte
-  
-  // TODO: Check checksum
-
-  ESP_LOGD(TAG, "Received MSG from %X, to %X, data: %s", source_, target_, print_vector_hex(data).c_str());
-  
-  this->decode_data_(target_, source_, data);
+uint8_t ElectroluxMacsComponent::calculate_checksum_(std::vector<uint8_t> frame) {
+	uint8_t checksum = 0;
+	size_t len = frame.size();
+	for (size_t i = 0; i < len - 1; i++)
+	{
+		checksum = checksum ^ frame[i];
+	}
+	return checksum;
 }
+
+void ElectroluxMacsComponent::process_data_(std::vector<uint8_t> frame) {
+	uint8_t marker_ = frame[0];
+	uint8_t target_ = frame[1];
+	uint8_t source_ = frame[2];
+	uint8_t length_ = frame[3];
+
+	if (length_ == 0) return;
+	if (5 + length_ < frame.size()) return;
+	std::vector<uint8_t> data(&frame[4], &frame[4 + length_]);
+
+	ESP_LOGD(TAG, "Received MSG from %X, to %X, data: %s", source_, target_, print_vector_hex(data).c_str());
+
+	if (this->verify_checksum_) {
+		uint8_t checksum_ = frame[4 + length_];
+		uint8_t checksum_calc_ = this->calculate_checksum_(frame);
+		if (checksum_ != checksum_calc_) {
+			ESP_LOGW(TAG, "Checksum error (%X != %X), skipping 1 frame", checksum_, checksum_calc_);
+			return;
+		}
+	}
+	
+	this->decode_data_(target_, source_, data);
+}
+
 
 void ElectroluxMacsComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "Electrolux MACS");
   ESP_LOGCONFIG(TAG, "  Receive timeout: %d", this->receive_timeout_);
+  ESP_LOGCONFIG(TAG, "  Verify checksum: %s", this->verify_checksum_ ? "true" : "false");
   check_uart_settings(9600, 1, esphome::uart::UART_CONFIG_PARITY_EVEN, 8);
 }
 

@@ -40,11 +40,12 @@ class ElectroluxMacsComponent : public Component, public uart::UARTDevice {
   
   // float get_setup_priority() const override { return esphome::setup_priority::HARDWARE_LATE; }
 
-  void set_crc_check(bool crc_check) { this->crc_check_ = crc_check; }
+  void set_verify_checksum(bool verify_checksum) { this->verify_checksum_ = verify_checksum; }
   void set_receive_timeout(uint32_t receive_timeout) { this->receive_timeout_ = receive_timeout; }
 
  protected:
   void process_data_(std::vector<uint8_t> frame);
+  uint8_t calculate_checksum_(std::vector<uint8_t> frame);
   virtual void decode_data_(uint8_t target, uint8_t source, std::vector<uint8_t> data);
   
   std::vector<uint8_t> data_;
@@ -53,7 +54,7 @@ class ElectroluxMacsComponent : public Component, public uart::UARTDevice {
   uint32_t last_transmission_{0};
   
   uint32_t receive_timeout_{200};
-  bool crc_check_{false};
+  bool verify_checksum_{true};
   std::string print_vector_hex(std::vector<uint8_t> bytes);
 
 };
