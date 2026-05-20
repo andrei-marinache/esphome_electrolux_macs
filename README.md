@@ -28,4 +28,17 @@ The MACS port is a 4-pin connector on the side of the board.
 You should look for a pad that's connected to the ground and one that looks like an inverted (so 0V on idle) UART TX (on a scope). The machine periodically sends a heartbeat, so you'll see it.
 Also the logic high level should be at 5V, otherwise that might be a different interface.
 
+To connect an ESP8266 or ESP32 board to the appliance, you **must** do level shifting like this:
+```
+        MACS (5V)
+            |
+           [4k7]
+            |
+            +-----------> ESP_RX (3.3V)
+            |
+           [10k]
+            |
+           GND
+```
+
 **Saying this again. Be very very very careful, because the board is not very much isolated from the mains! Use only isolated instruments for measurements!!!**
