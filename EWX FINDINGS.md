@@ -2,18 +2,25 @@ EWX 14 washing machine
 
 ```
 10 - ???
-   00 - ??? (broadcasted at power on)
-      1B - ???
-   01 - ??? (sent directly from front panel to controller)
+   00 
+      1B - wakeup (broadcasted at power on, sent to the inverter directly in some cases)
+      17 - wakeup pong
+   01 - wakeup pong ack? (sent directly from front panel to controller)
 ```
 
 ```
-11 - ???
+11 - sw provisioning
    00 - (sent by the front panel at power up)
       55 44 41 30 4D 32 31 31 43 - sw version "UDA0M211C"
                                  11 53 5F FD 03 00 00
+      4D 30 4C 43 30 36 36 33 - inverter fw version "M0LC0663"
+                              FF FF
    01 - (sent by the controller at power up)
       00 00
+      34 7A 00 F5 00 50 00 08 00 20 00 55 00 00 - sent to inverter after config load
+   03 - configuration load
+      xx - data nr
+         xx*20 data bytes
 ```
 
 ```
@@ -60,16 +67,24 @@ EWX 14 washing machine
 ```
 51 - change state
    00 
+      41 - start diag mode (screen scrolling)
+      4x - diag mode c0x
+      45 - diag mode 5
+      25 - diag mode 5 start btn
       60 - start program
          00 
             00 - start washing
                1B 03
       62 - pause program
+      73 - show working time
       7D - power on/off
          02 17 - off
          01 17 - power on 1
          00 17 - power on 2
          01 16 - power off timeout
+         04 16 - demo mode ?
+         04 17 - demo mode ? off?
+         06 17 - demo mode ? on?
 ```
 
 
@@ -87,8 +102,9 @@ EWX 14 washing machine
             01
             08
             80
-               x0 - door unlocked
-               x3 - door locked
+               x2 - door open
+               x1 - door lock requested
+               1x - door locked
                00
                03
                11
@@ -96,15 +112,44 @@ EWX 14 washing machine
                15
                25
                   00 
+                     00 - only in diag mode
                      40 
                      C0
                         2C 00
       03 - finished (after anti-crease)
       04 - pause
+      06 - waiting for door lock to release
       08 - delayed start
       0B - power off
-         00 00 
+         00 00 ...
 ```
+
+```
+54 - diag mode related?
+   00 00 
+         31
+         33
+         34 
+            15 00 
+                  xx - running program
+                     00 00 00 00 00
+```
+
+```
+55 - ???
+   00
+      B0
+         1C
+         9C
+            14
+               81
+               83
+                  00
+                  80
+                  D1
+                     00 27 FF 28 0E 00 00
+```
+
 
 ```
 56 - time
@@ -116,13 +161,14 @@ EWX 14 washing machine
       01 - delay start remaining time
          xx xx - value x 10 seconds
          02 45 - ca. 97 mins
-      02
-         xx xx - incrementing every 6 minutes sometimes
+      02 - total washed hours counter, sent sometimes or when requested
+         xx xx - hours * 10
+         01 F8 - 504 -> 50,4 Hr
                xx xx - previous field repeated
                      00 00 00 00
-      03
-         xx xx 
-               xx xx
+      03 - Probably wash cycle count
+         xx xx - Probably wash cycle count
+               xx xx - previous field repeated
                      00 00 00 00
          00 01 00 01 00 00 00 00
          00 02 00 02 00 00 00 00
@@ -131,6 +177,7 @@ EWX 14 washing machine
          00 00 46 00
          00 00 1E 00
       07
+         00 76 - clothes+ off
          xx xx
       08 - ???
          00
@@ -170,17 +217,19 @@ EWX 14 washing machine
 11 03 05 29 F7 01 2C 53 1E 00 6F 17 70 3B 71 00 64 01 90 FF FF FF FF
 11 03 06 FF FF 01 00 9C C9
 11 01 34 7A 00 F5 00 50 00 08 00 20 00 55 00 00
+AD 00 04 B4 3C 23 1E 2C 54 60 02 E9
 ```
 
 ```
 12 
-   00 
+   00 - from controller to inverter
       00 00
       01 AB
       01 E8
       02 25
       02 62
       02 DC
+      -----
       BF 30
       C6 D0
       CB 94
@@ -228,17 +277,18 @@ EWX 14 washing machine
                            10
                            11
 
-   03
+   03 - from inverter to controller
       xx xx
             xx xx
-                  xx xx 
+                  xx - Drum temperature like ?
+                     xx - controller temperature like
                         xx xx
                               00
                               01 
                                  00
                                     00
                                     20
-                                       xx xx
+                                       xx xx - Water level
                                              xx
                                                 00 00
                                                 01 AB
@@ -265,35 +315,54 @@ EWX 14 washing machine
                                                 FD DB
                                                 FE 18
                                                       xx
-                                                         xx xx
+                                                         xx xx - motor rotation rate ?
 ```
 
 ```
 15
-   00 02 62 
+   00 02 62 - to inverter
             07
             08
             09
             0A
             0B
                xx
+               04
+               8C
+               B3
+               D9
+               D1
+               FC
+               7B
+               AB
                   00 1E 07 08 04 C4 05 
                                        14
                                        78
                                        DC
+   01 00 - from inverter
 ```
 
 
 ```
 16
-   00 
+   00  - to inverter
       03 B6
       FF FF
             06
             07
             08
             09
-               A5 00
-   01 00
+               04
+               C3
+               A5
+               AE
+               BC
+                  00
+   01 00 - from inverter
+```
+
+```
+C9 - from inverter
+   21 25 15 12
 ```
 
