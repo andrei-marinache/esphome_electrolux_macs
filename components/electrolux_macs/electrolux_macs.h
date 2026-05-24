@@ -31,6 +31,11 @@ static const uint8_t MACS_APPLIANCE_STATE_FINISHED = 0x03;
 static const uint8_t MACS_APPLIANCE_STATE_PAUSED = 0x04;
 static const uint8_t MACS_APPLIANCE_STATE_PENDING_START = 0x08;
 
+static const uint8_t MACS_TIME_CHANGE_PROGRAM_TIME = 0x00;
+static const uint8_t MACS_TIME_CHANGE_START_DELAY = 0x01;
+static const uint8_t MACS_TIME_CHANGE_TOTAL_WORK_HOURS = 0x02;
+static const uint8_t MACS_TIME_CHANGE_TOTAL_CYCLES = 0x03;
+
 
 class ElectroluxMacsComponent : public Component, public uart::UARTDevice {
  public:

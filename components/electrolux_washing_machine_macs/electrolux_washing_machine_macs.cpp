@@ -15,13 +15,13 @@ void ElectroluxWashingMachineMacsComponent::decode_data_(uint8_t target, uint8_t
   
     case MACS_MESSAGE_TYPE_TIME_CHANGE:
 #ifdef USE_SENSOR
-      if (data[2] == 0) {
+      if (data[2] == MACS_TIME_CHANGE_PROGRAM_TIME) {
         tmp_ = encode_uint16(data[3], data[4]);
         if (this->remaining_time_sensor_) {
           if (tmp_ == 65535) this->remaining_time_sensor_->publish_state(NAN);
           else this->remaining_time_sensor_->publish_state((float) tmp_);
         }
-      } else if (data[2] == 1) {
+      } else if (data[2] == MACS_TIME_CHANGE_START_DELAY) {
         tmp_ = encode_uint16(data[3], data[4]);
         if (this->start_delay_time_sensor_) {
           if (tmp_ == 65535) this->start_delay_time_sensor_->publish_state(NAN);
