@@ -94,6 +94,11 @@ void ElectroluxWashingMachineMacsComponent::decode_data_(uint8_t target, uint8_t
     default:
       break;
   }
+
+void ElectroluxWashingMachineMacsComponent::dump_config() {
+  ESP_LOGCONFIG(TAG, "Electrolux Washing Machine MACS");
+  esphome::electrolux_macs::ElectroluxMacsComponent::dump_config();
+  ESP_LOGCONFIG(TAG, "  Motor to drum ratio = %f", this->motor_drum_ratio_);
 }
 
 }  // namespace electrolux_washing_machine_macs

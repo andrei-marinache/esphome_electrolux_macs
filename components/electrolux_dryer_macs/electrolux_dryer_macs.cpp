@@ -84,6 +84,11 @@ void ElectroluxDryerMacsComponent::decode_data_(uint8_t target, uint8_t source, 
   }
 }
 
+void ElectroluxDryerMacsComponent::dump_config() {
+  ESP_LOGCONFIG(TAG, "Electrolux Dryer MACS");
+  esphome::electrolux_macs::ElectroluxMacsComponent::dump_config();
+}
+
 }  // namespace electrolux_dryer_macs
 }  // namespace esphome
 

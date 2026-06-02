@@ -100,7 +100,6 @@ void ElectroluxMacsComponent::process_data_(std::vector<uint8_t> frame) {
 
 
 void ElectroluxMacsComponent::dump_config() {
-  ESP_LOGCONFIG(TAG, "Electrolux MACS");
   ESP_LOGCONFIG(TAG, "  Receive timeout: %d", this->receive_timeout_);
   ESP_LOGCONFIG(TAG, "  Verify checksum: %s", this->verify_checksum_ ? "true" : "false");
   check_uart_settings(9600, 1, esphome::uart::UART_CONFIG_PARITY_EVEN, 8);

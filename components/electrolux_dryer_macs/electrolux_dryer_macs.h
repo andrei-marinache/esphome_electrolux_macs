@@ -20,8 +20,9 @@ static const uint8_t MACS_DRYER_DRYING_PHASE_COOLING = 0x02;
 static const uint8_t MACS_DRYER_DRYING_PHASE_ANTI_CREASE = 0x04;
 
 class ElectroluxDryerMacsComponent : public esphome::electrolux_macs::ElectroluxMacsComponent {
- public:
-   ElectroluxDryerMacsComponent(uart::UARTComponent *uart) : esphome::electrolux_macs::ElectroluxMacsComponent(uart) {}
+  public:
+  ElectroluxDryerMacsComponent(uart::UARTComponent *uart) : esphome::electrolux_macs::ElectroluxMacsComponent(uart) {}
+  void dump_config() override;
  
 #ifdef USE_SENSOR
   SUB_SENSOR(remaining_time)
@@ -41,7 +42,7 @@ class ElectroluxDryerMacsComponent : public esphome::electrolux_macs::Electrolux
   SUB_BINARY_SENSOR(heating)
 #endif
 
- protected:
+  protected:
   void decode_data_(uint8_t target, uint8_t source, std::vector<uint8_t> data) override;
 
 };

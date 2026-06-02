@@ -38,7 +38,7 @@ static const uint8_t MACS_TIME_CHANGE_TOTAL_CYCLES = 0x03;
 
 
 class ElectroluxMacsComponent : public Component, public uart::UARTDevice {
- public:
+  public:
   ElectroluxMacsComponent(uart::UARTComponent *uart) : uart::UARTDevice(uart) {}
 
   void setup() override;
@@ -50,7 +50,7 @@ class ElectroluxMacsComponent : public Component, public uart::UARTDevice {
   void set_verify_checksum(bool verify_checksum) { this->verify_checksum_ = verify_checksum; }
   void set_receive_timeout(uint32_t receive_timeout) { this->receive_timeout_ = receive_timeout; }
 
- protected:
+  protected:
   void process_data_(std::vector<uint8_t> frame);
   uint8_t calculate_checksum_(std::vector<uint8_t> frame);
   virtual void decode_data_(uint8_t target, uint8_t source, std::vector<uint8_t> data);
