@@ -120,6 +120,8 @@ EWX 14 washing machine
       04 - pause
       06 - waiting for door lock to release
       08 - delayed start
+      09 - error
+         00 00 00 00
       0B - power off
          00 00 ...
 ```
@@ -190,8 +192,13 @@ EWX 14 washing machine
 ```
 
 ```
-57 - ??? (sent from controller to front panel on power up)
+57 - alarm (+1)
+   00
+      xx - current alarm
+         xx - last alarm (and current if active)
    00 00 00 00 00
+   00 41 41 00 00 - before getting E40
+   00 00 41 00 00 - cleared E40
 ```
 
 ```

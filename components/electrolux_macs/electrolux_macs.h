@@ -17,11 +17,13 @@ static const uint8_t MACS_ID_FRONT_PANEL = 0x2A;
 static const uint8_t MACS_MESSAGE_MARKER = 0xC9;
 static const uint8_t MACS_ACK_MARKER = 0x98;
 
+static const uint8_t MACS_MESSAGE_TYPE_IDENTIFICATION = 0x11;
 static const uint8_t MACS_MESSAGE_TYPE_PROGRAM_SET = 0x50;
 static const uint8_t MACS_MESSAGE_TYPE_PROGRAM = 0x55;
 static const uint8_t MACS_MESSAGE_TYPE_STATE_SET = 0x51;
 static const uint8_t MACS_MESSAGE_TYPE_STATE = 0x52;
 static const uint8_t MACS_MESSAGE_TYPE_TIME_CHANGE = 0x56;
+static const uint8_t MACS_MESSAGE_TYPE_ALARM = 0x57;
 static const uint8_t MACS_MESSAGE_TYPE_HEARTBEAT = 0x5F;
 
 static const uint8_t MACS_APPLIANCE_STATE_STANDBY = 0x0B;
@@ -30,6 +32,7 @@ static const uint8_t MACS_APPLIANCE_STATE_RUNNING = 0x02;
 static const uint8_t MACS_APPLIANCE_STATE_FINISHED = 0x03;
 static const uint8_t MACS_APPLIANCE_STATE_PAUSED = 0x04;
 static const uint8_t MACS_APPLIANCE_STATE_PENDING_START = 0x08;
+static const uint8_t MACS_APPLIANCE_STATE_ERROR = 0x09;
 
 static const uint8_t MACS_TIME_CHANGE_PROGRAM_TIME = 0x00;
 static const uint8_t MACS_TIME_CHANGE_START_DELAY = 0x01;

@@ -33,9 +33,10 @@ class ElectroluxWashingMachineMacsComponent : public esphome::electrolux_macs::E
   SUB_SENSOR(spin_speed)
 #endif
 
-//#ifdef USE_TEXT_SENSOR
+#ifdef USE_TEXT_SENSOR
+  SUB_TEXT_SENSOR(active_alarm)
 //  SUB_TEXT_SENSOR(selected_program_name)
-//#endif
+#endif
 
 #ifdef USE_BINARY_SENSOR
   SUB_BINARY_SENSOR(powered_on)
@@ -50,6 +51,7 @@ class ElectroluxWashingMachineMacsComponent : public esphome::electrolux_macs::E
 
   protected:
   void decode_data_(uint8_t target, uint8_t source, std::vector<uint8_t> data) override;
+  void decode_ui_(uint8_t target, uint8_t source, std::vector<uint8_t> data);
   
 };
 }  // namespace electrolux_washing_machine_macs

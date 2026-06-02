@@ -8,25 +8,29 @@ namespace electrolux_washing_machine_macs {
 
 static const char *const TAG = "electrolux_washing_machine_macs";
 
-void ElectroluxWashingMachineMacsComponent::decode_data_(uint8_t target, uint8_t source, std::vector<uint8_t> data) {  
+
+void ElectroluxWashingMachineMacsComponent::decode_ui_(uint8_t target, uint8_t source, std::vector<uint8_t> data) {  
   uint8_t msg_type_ = data[0];
+  char alarm_buf[4] = {0};
   uint16_t tmp_ = 0;
   switch (msg_type_) {
-  
     case MACS_MESSAGE_TYPE_TIME_CHANGE:
 #ifdef USE_SENSOR
-      if (data[2] == MACS_TIME_CHANGE_PROGRAM_TIME) {
-        tmp_ = encode_uint16(data[3], data[4]);
-        if (this->remaining_time_sensor_) {
-          if (tmp_ == 65535) this->remaining_time_sensor_->publish_state(NAN);
-          else this->remaining_time_sensor_->publish_state((float) tmp_);
-        }
-      } else if (data[2] == MACS_TIME_CHANGE_START_DELAY) {
-        tmp_ = encode_uint16(data[3], data[4]);
-        if (this->start_delay_time_sensor_) {
-          if (tmp_ == 65535) this->start_delay_time_sensor_->publish_state(NAN);
-          else this->start_delay_time_sensor_->publish_state(((float) tmp_) / 6);
-        }
+      switch (data[2]) {
+        case MACS_TIME_CHANGE_PROGRAM_TIME:
+          tmp_ = encode_uint16(data[3], data[4]);
+          if (this->remaining_time_sensor_) {
+            if (tmp_ == 65535) this->remaining_time_sensor_->publish_state(NAN);
+            else this->remaining_time_sensor_->publish_state((float) tmp_);
+          }
+          break;
+        case MACS_TIME_CHANGE_START_DELAY:
+          tmp_ = encode_uint16(data[3], data[4]);
+          if (this->start_delay_time_sensor_) {
+            if (tmp_ == 65535) this->start_delay_time_sensor_->publish_state(NAN);
+            else this->start_delay_time_sensor_->publish_state(((float) tmp_) / 6);
+          }
+          break;
       }
 #endif
       break;
@@ -56,6 +60,7 @@ void ElectroluxWashingMachineMacsComponent::decode_data_(uint8_t target, uint8_t
         case MACS_APPLIANCE_STATE_IDLE:
         case MACS_APPLIANCE_STATE_PAUSED:
         case MACS_APPLIANCE_STATE_FINISHED:
+        case MACS_APPLIANCE_STATE_ERROR:
 #ifdef USE_BINARY_SENSOR
           if (this->powered_on_binary_sensor_) this->powered_on_binary_sensor_->publish_state(1);
           if (this->running_binary_sensor_) this->running_binary_sensor_->publish_state(0);
@@ -91,9 +96,34 @@ void ElectroluxWashingMachineMacsComponent::decode_data_(uint8_t target, uint8_t
 #endif
       break;
       
+    case MACS_MESSAGE_TYPE_ALARM:
+#ifdef USE_TEXT_SENSOR
+      if (this->active_alarm_text_sensor_) {
+        if(data[2] != 0) {
+          sprintf(alarm_buf, "E%02X", data[2] - 1);
+          this->active_alarm_text_sensor_->publish_state(alarm_buf, 3);
+        } else this->active_alarm_text_sensor_->publish_state(alarm_buf, 0);
+      }
+#endif
+      break;
+      
     default:
       break;
   }
+}
+
+void ElectroluxWashingMachineMacsComponent::decode_data_(uint8_t target, uint8_t source, std::vector<uint8_t> data) {
+  uint8_t endpoint = target;
+  if(endpoint == MACS_ID_WM_CONTROLLER) endpoint = source;
+
+  switch (endpoint) {
+    case MACS_ID_FRONT_PANEL:
+      decode_ui_(target, source, data);
+      break;
+    default:
+      break;
+  }
+}
 
 void ElectroluxWashingMachineMacsComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "Electrolux Washing Machine MACS");
