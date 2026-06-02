@@ -23,6 +23,7 @@ class ElectroluxWashingMachineMacsComponent : public esphome::electrolux_macs::E
   public:
   ElectroluxWashingMachineMacsComponent(uart::UARTComponent *uart) : esphome::electrolux_macs::ElectroluxMacsComponent(uart) {}
   void dump_config() override;
+  void set_motor_drum_ratio(float motor_drum_ratio) { this->motor_drum_ratio_ = motor_drum_ratio;}
 
 #ifdef USE_SENSOR
   SUB_SENSOR(remaining_time)
@@ -31,6 +32,9 @@ class ElectroluxWashingMachineMacsComponent : public esphome::electrolux_macs::E
   SUB_SENSOR(time_manager)
   SUB_SENSOR(wash_temperature)
   SUB_SENSOR(spin_speed)
+  SUB_SENSOR(target_drum_speed)
+  SUB_SENSOR(current_drum_speed)
+  SUB_SENSOR(current_water_temperature)
   SUB_SENSOR(total_working_hours)
   SUB_SENSOR(total_cycles)
 #endif
@@ -52,7 +56,9 @@ class ElectroluxWashingMachineMacsComponent : public esphome::electrolux_macs::E
 #endif
 
   protected:
+  float motor_drum_ratio_{1};
   void decode_data_(uint8_t target, uint8_t source, std::vector<uint8_t> data) override;
+  void decode_inverter_(uint8_t target, uint8_t source, std::vector<uint8_t> data);
   void decode_ui_(uint8_t target, uint8_t source, std::vector<uint8_t> data);
   
 };

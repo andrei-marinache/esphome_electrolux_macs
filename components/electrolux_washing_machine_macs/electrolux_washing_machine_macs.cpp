@@ -120,6 +120,40 @@ void ElectroluxWashingMachineMacsComponent::decode_ui_(uint8_t target, uint8_t s
   }
 }
 
+void ElectroluxWashingMachineMacsComponent::decode_inverter_(uint8_t target, uint8_t source, std::vector<uint8_t> data) {
+  int16_t tmp_ = 0;
+  if(source == MACS_ID_INVERTER) {
+    switch (data[0]) {
+      case MACS_MESSAGE_TYPE_INVERTER_STATE:
+  #ifdef USE_SENSOR
+        tmp_ = encode_uint16(data[2], data[3]) & 0x7FFF;
+        if (this->current_drum_speed_sensor_) this->current_drum_speed_sensor_->publish_state(((float) tmp_) / motor_drum_ratio_);
+        
+        tmp_ = encode_uint16(data[19], data[20]);
+        tmp_ = (tmp_ & 0x8000) ? (uint16_t)(0u - tmp_) : tmp_;
+        if (this->target_drum_speed_sensor_) this->target_drum_speed_sensor_->publish_state(((float) tmp_) / motor_drum_ratio_);
+  #endif
+        break;
+        
+      default:
+        break;
+    }
+  } else if(target == MACS_ID_INVERTER) {
+    switch (data[0]) {
+      case MACS_MESSAGE_TYPE_INVERTER_STATE:
+  #ifdef USE_SENSOR
+        tmp_ = encode_uint16(data[2], data[3]);
+        tmp_ = (tmp_ & 0x8000) ? (uint16_t)(0u - tmp_) : tmp_;
+        if (this->target_drum_speed_sensor_) this->target_drum_speed_sensor_->publish_state(((float) tmp_) / motor_drum_ratio_);
+  #endif
+        break;
+        
+      default:
+        break;
+    }
+  }
+}
+
 void ElectroluxWashingMachineMacsComponent::decode_data_(uint8_t target, uint8_t source, std::vector<uint8_t> data) {
   uint8_t endpoint = target;
   if(endpoint == MACS_ID_WM_CONTROLLER) endpoint = source;
@@ -127,6 +161,9 @@ void ElectroluxWashingMachineMacsComponent::decode_data_(uint8_t target, uint8_t
   switch (endpoint) {
     case MACS_ID_FRONT_PANEL:
       decode_ui_(target, source, data);
+      break;
+    case MACS_ID_INVERTER:
+      decode_inverter_(target, source, data);
       break;
     default:
       break;

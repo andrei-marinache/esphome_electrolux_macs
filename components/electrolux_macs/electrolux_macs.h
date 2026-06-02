@@ -18,6 +18,7 @@ static const uint8_t MACS_MESSAGE_MARKER = 0xC9;
 static const uint8_t MACS_ACK_MARKER = 0x98;
 
 static const uint8_t MACS_MESSAGE_TYPE_IDENTIFICATION = 0x11;
+static const uint8_t MACS_MESSAGE_TYPE_INVERTER_STATE = 0x12;
 static const uint8_t MACS_MESSAGE_TYPE_PROGRAM_SET = 0x50;
 static const uint8_t MACS_MESSAGE_TYPE_PROGRAM = 0x55;
 static const uint8_t MACS_MESSAGE_TYPE_STATE_SET = 0x51;

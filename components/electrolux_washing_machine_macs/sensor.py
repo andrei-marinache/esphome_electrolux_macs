@@ -25,6 +25,9 @@ CONF_SELECTED_PROGRAM_NUMBER = "selected_program_number"
 CONF_TIME_MANAGER = "time_manager"
 CONF_WASH_TEMPERATURE = "wash_temperature"
 CONF_SPIN_SPEED = "spin_speed"
+CONF_TARGET_DRUM_SPEED = "target_drum_speed"
+CONF_CURRENT_DRUM_SPEED = "current_drum_speed"
+CONF_CURRENT_WATER_TEMPERATURE = "current_water_temperature"
 CONF_TOTAL_WORKING_HOURS = "total_working_hours"
 CONF_TOTAL_CYCLES = "total_cycles"
 
@@ -35,6 +38,9 @@ TYPES = [
     CONF_TIME_MANAGER,
     CONF_WASH_TEMPERATURE,
     CONF_SPIN_SPEED,
+    CONF_TARGET_DRUM_SPEED,
+    CONF_CURRENT_DRUM_SPEED,
+    CONF_CURRENT_WATER_TEMPERATURE,
     CONF_TOTAL_WORKING_HOURS,
     CONF_TOTAL_CYCLES
 ]
@@ -74,6 +80,24 @@ CONFIG_SCHEMA = cv.Schema(
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
             device_class=DEVICE_CLASS_SPEED,
+        ),
+        cv.Optional(CONF_TARGET_DRUM_SPEED): sensor.sensor_schema(
+            unit_of_measurement=UNIT_REVOLUTIONS_PER_MINUTE,
+            accuracy_decimals=1,
+            state_class=STATE_CLASS_MEASUREMENT,
+            device_class=DEVICE_CLASS_SPEED,
+        ),
+        cv.Optional(CONF_CURRENT_DRUM_SPEED): sensor.sensor_schema(
+            unit_of_measurement=UNIT_REVOLUTIONS_PER_MINUTE,
+            accuracy_decimals=1,
+            state_class=STATE_CLASS_MEASUREMENT,
+            device_class=DEVICE_CLASS_SPEED,
+        ),
+        cv.Optional(CONF_CURRENT_WATER_TEMPERATURE): sensor.sensor_schema(
+            unit_of_measurement=UNIT_CELSIUS,
+            accuracy_decimals=0,
+            state_class=STATE_CLASS_MEASUREMENT,
+            device_class=DEVICE_CLASS_TEMPERATURE,
         ),
         cv.Optional(CONF_TOTAL_WORKING_HOURS): sensor.sensor_schema(
             unit_of_measurement=UNIT_HOUR,
