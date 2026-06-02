@@ -31,6 +31,14 @@ void ElectroluxWashingMachineMacsComponent::decode_ui_(uint8_t target, uint8_t s
             else this->start_delay_time_sensor_->publish_state(((float) tmp_) / 6);
           }
           break;
+        case MACS_TIME_CHANGE_TOTAL_WORK_HOURS:
+          tmp_ = encode_uint16(data[3], data[4]);
+          if (this->total_working_hours_sensor_) this->total_working_hours_sensor_->publish_state(((float) tmp_) / 10);
+          break;
+        case MACS_TIME_CHANGE_TOTAL_CYCLES:
+          tmp_ = encode_uint16(data[3], data[4]);
+          if (this->total_cycles_sensor_) this->total_cycles_sensor_->publish_state(tmp_);
+          break;
       }
 #endif
       break;

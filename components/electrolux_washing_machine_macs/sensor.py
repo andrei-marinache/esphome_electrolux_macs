@@ -5,12 +5,15 @@ from esphome.const import (
     CONF_ID,
     ICON_TIMER,
     STATE_CLASS_MEASUREMENT,
+    STATE_CLASS_TOTAL_INCREASING,
     DEVICE_CLASS_DURATION,
     DEVICE_CLASS_MOISTURE,
     DEVICE_CLASS_SPEED,
     DEVICE_CLASS_TEMPERATURE,
+    ENTITY_CATEGORY_DIAGNOSTIC,
     UNIT_CELSIUS,
     UNIT_MINUTE,
+    UNIT_HOUR,
     UNIT_REVOLUTIONS_PER_MINUTE,
 )
 
@@ -22,6 +25,8 @@ CONF_SELECTED_PROGRAM_NUMBER = "selected_program_number"
 CONF_TIME_MANAGER = "time_manager"
 CONF_WASH_TEMPERATURE = "wash_temperature"
 CONF_SPIN_SPEED = "spin_speed"
+CONF_TOTAL_WORKING_HOURS = "total_working_hours"
+CONF_TOTAL_CYCLES = "total_cycles"
 
 TYPES = [
     CONF_REMAINING_TIME,
@@ -30,6 +35,8 @@ TYPES = [
     CONF_TIME_MANAGER,
     CONF_WASH_TEMPERATURE,
     CONF_SPIN_SPEED,
+    CONF_TOTAL_WORKING_HOURS,
+    CONF_TOTAL_CYCLES
 ]
 
 CONFIG_SCHEMA = cv.Schema(
@@ -68,6 +75,19 @@ CONFIG_SCHEMA = cv.Schema(
             state_class=STATE_CLASS_MEASUREMENT,
             device_class=DEVICE_CLASS_SPEED,
         ),
+        cv.Optional(CONF_TOTAL_WORKING_HOURS): sensor.sensor_schema(
+            unit_of_measurement=UNIT_HOUR,
+            accuracy_decimals=0,
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+            device_class=DEVICE_CLASS_DURATION,
+        ),
+        cv.Optional(CONF_TOTAL_CYCLES): sensor.sensor_schema(
+            accuracy_decimals=0,
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
+            device_class=DEVICE_CLASS_DURATION,
+        )
     }
 ).extend(cv.COMPONENT_SCHEMA)
 

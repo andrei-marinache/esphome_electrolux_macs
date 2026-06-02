@@ -168,8 +168,8 @@ EWX 14 washing machine
          01 F8 - 504 -> 50,4 Hr
                xx xx - previous field repeated
                      00 00 00 00
-      03 - Probably wash cycle count
-         xx xx - Probably wash cycle count
+      03 - wash cycle count
+         xx xx - wash cycle count
                xx xx - previous field repeated
                      00 00 00 00
          00 01 00 01 00 00 00 00

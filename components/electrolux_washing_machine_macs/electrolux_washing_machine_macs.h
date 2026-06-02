@@ -31,6 +31,8 @@ class ElectroluxWashingMachineMacsComponent : public esphome::electrolux_macs::E
   SUB_SENSOR(time_manager)
   SUB_SENSOR(wash_temperature)
   SUB_SENSOR(spin_speed)
+  SUB_SENSOR(total_working_hours)
+  SUB_SENSOR(total_cycles)
 #endif
 
 #ifdef USE_TEXT_SENSOR
