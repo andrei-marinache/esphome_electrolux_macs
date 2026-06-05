@@ -1,7 +1,7 @@
 import esphome.codegen as cg
 from esphome.components import uart
 import esphome.config_validation as cv
-from ..electrolux_macs import CONFIG_SCHEMA_BASE, to_code_base as to_code
+from ..electrolux_macs import CONFIG_SCHEMA_BASE, CONF_ID, CONF_UART_ID, CONF_RECEIVE_TIMEOUT, CONF_VERIFY_CHECKSUM
 
 CODEOWNERS = ["@agocsdaniel"]
 
@@ -13,10 +13,6 @@ CONF_ELECTROLUX_WASHING_MACHINE_MACS_ID = "electrolux_washing_machine_macs_id"
 
 CONF_MOTOR_DRUM_RATIO = "motor_drum_ratio"
 
-TYPES = [
-	CONF_MOTOR_DRUM_RATIO,
-]
-
 electrolux_washing_machine_macs_ns = cg.esphome_ns.namespace("electrolux_washing_machine_macs")
 ElectroluxWashingMachineMacsComponent = electrolux_washing_machine_macs_ns.class_(
     "ElectroluxWashingMachineMacsComponent", cg.Component, uart.UARTDevice
@@ -26,4 +22,13 @@ CONFIG_SCHEMA = CONFIG_SCHEMA_BASE.extend({
     cv.GenerateID(): cv.declare_id(ElectroluxWashingMachineMacsComponent),
     cv.Optional(CONF_MOTOR_DRUM_RATIO): cv.float_range(0, 100),
 })
+
+async def to_code(config):
+    uart_component = await cg.get_variable(config[CONF_UART_ID])
+    var = cg.new_Pvariable(config[CONF_ID], uart_component)
+    cg.add(var.set_receive_timeout(config[CONF_RECEIVE_TIMEOUT].total_milliseconds))
+    cg.add(var.set_verify_checksum(config[CONF_VERIFY_CHECKSUM]))
+    cg.add(var.set_motor_drum_ratio(config[CONF_MOTOR_DRUM_RATIO]))
+    await cg.register_component(var, config)
+    await uart.register_uart_device(var, config)
 

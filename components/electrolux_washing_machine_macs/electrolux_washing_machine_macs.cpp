@@ -132,6 +132,8 @@ void ElectroluxWashingMachineMacsComponent::decode_inverter_(uint8_t target, uin
         tmp_ = encode_uint16(data[19], data[20]);
         tmp_ = (tmp_ & 0x8000) ? (uint16_t)(0u - tmp_) : tmp_;
         if (this->target_drum_speed_sensor_) this->target_drum_speed_sensor_->publish_state(((float) tmp_) / motor_drum_ratio_);
+        
+        if (this->current_water_temperature_sensor_) this->current_water_temperature_sensor_->publish_state((float) data[6]);
   #endif
         break;
         

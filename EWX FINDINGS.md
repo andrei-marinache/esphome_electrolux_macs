@@ -285,7 +285,7 @@ AD 00 04 B4 3C 23 1E 2C 54 60 02 E9
                            11
 
    03 - from inverter to controller
-      xx xx
+      xx xx - motor speed
             xx xx
                   xx - Drum temperature like ?
                      xx - controller temperature like
@@ -322,7 +322,7 @@ AD 00 04 B4 3C 23 1E 2C 54 60 02 E9
                                                 FD DB
                                                 FE 18
                                                       xx
-                                                         xx xx - motor rotation rate ?
+                                                         xx xx - speed target
 ```
 
 ```

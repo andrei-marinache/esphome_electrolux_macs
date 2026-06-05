@@ -10,10 +10,10 @@ Actually most Electrolux / AEG / Zanussi appliances with EDR and EWX controllers
 
 Tested compatible models:
 
-| Brand           | Model             | Type                 |
-|-----------------|-------------------|----------------------|
-| Electrolux      | EDC2086GDW        | Dryer                |
-| Electrolux      | EW6SN347SHI       | Washing machine      |
+| Brand           | Model             | Type                 | Motor to drum ratio |
+|-----------------|-------------------|----------------------|---------------------|
+| Electrolux      | EDC2086GDW        | Dryer                |                     |
+| Electrolux      | EW6SN347SHI       | Washing machine      |                12.2 |
 
 
 If you have access and motivation to add new devices, feel free to open an issue with your findings. Please don't make requests without at least serial dumps, I won't buy a dryer just to help you.
@@ -28,7 +28,7 @@ The MACS port is a 4-pin connector on the side of the board.
 You should look for a pad that's connected to the ground and one that looks like an inverted (so 0V on idle) UART TX (on a scope). The machine periodically sends a heartbeat, so you'll see it.
 Also the logic high level should be at 5V, otherwise that might be a different interface.
 
-To connect an ESP8266 or ESP32 board to the appliance, you **must** do level shifting like this:
+To connect an ESP8266 or ESP32 board to the appliance, you need to do level shifting like this: Without it the higher voltage might damage the board and can cause data errors.
 ```
         MACS (5V)
             |
