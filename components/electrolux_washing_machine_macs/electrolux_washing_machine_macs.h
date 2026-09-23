@@ -39,6 +39,7 @@ class ElectroluxWashingMachineMacsComponent : public esphome::electrolux_macs::E
   SUB_SENSOR(total_working_hours)
   SUB_SENSOR(total_cycles)
   SUB_SENSOR(sub_phase)
+  SUB_SENSOR(laundry_load)
 #endif
 
 #ifdef USE_TEXT_SENSOR

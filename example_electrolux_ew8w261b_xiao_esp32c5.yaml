@@ -82,6 +82,8 @@ sensor:
       name: "Total cycles"
     sub_phase:
       name: "Sub-phase"
+    laundry_load:
+      name: "Laundry load"
 
 binary_sensor:
   - platform: electrolux_washing_machine_macs

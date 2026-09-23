@@ -10,11 +10,13 @@ from esphome.const import (
     DEVICE_CLASS_MOISTURE,
     DEVICE_CLASS_SPEED,
     DEVICE_CLASS_TEMPERATURE,
+    DEVICE_CLASS_WEIGHT,
     ENTITY_CATEGORY_DIAGNOSTIC,
     UNIT_CELSIUS,
     UNIT_MINUTE,
     UNIT_HOUR,
     UNIT_REVOLUTIONS_PER_MINUTE,
+    UNIT_KILOGRAM,
 )
 
 from . import CONF_ELECTROLUX_WASHING_MACHINE_MACS_ID, ElectroluxWashingMachineMacsComponent
@@ -31,6 +33,7 @@ CONF_CURRENT_WATER_TEMPERATURE = "current_water_temperature"
 CONF_TOTAL_WORKING_HOURS = "total_working_hours"
 CONF_TOTAL_CYCLES = "total_cycles"
 CONF_SUB_PHASE = "sub_phase"
+CONF_LAUNDRY_LOAD = "laundry_load"
 
 TYPES = [
     CONF_REMAINING_TIME,
@@ -45,6 +48,7 @@ TYPES = [
     CONF_TOTAL_WORKING_HOURS,
     CONF_TOTAL_CYCLES,
     CONF_SUB_PHASE,
+    CONF_LAUNDRY_LOAD,
 ]
 
 CONFIG_SCHEMA = cv.Schema(
@@ -117,6 +121,13 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_SUB_PHASE): sensor.sensor_schema(
             accuracy_decimals=0,
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        ),
+        cv.Optional(CONF_LAUNDRY_LOAD): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOGRAM,
+            accuracy_decimals=1,
+            state_class=STATE_CLASS_MEASUREMENT,
+            device_class=DEVICE_CLASS_WEIGHT,
+            icon="mdi:scale",
         ),
     }
 ).extend(cv.COMPONENT_SCHEMA)

@@ -41,6 +41,11 @@ void ElectroluxWashingMachineMacsComponent::decode_ui_(uint8_t target, uint8_t s
           tmp_ = encode_uint16(data[3], data[4]);
           if (this->total_cycles_sensor_) this->total_cycles_sensor_->publish_state(tmp_);
           break;
+        case 0x04:
+          // EW8W261B: weighed laundry in grams (500 g steps, as on the display), FFFF = no reading
+          tmp_ = encode_uint16(data[3], data[4]);
+          if (this->laundry_load_sensor_) this->laundry_load_sensor_->publish_state(tmp_ == 0xFFFF ? NAN : tmp_ / 1000.0f);
+          break;
       }
 #endif
       break;
