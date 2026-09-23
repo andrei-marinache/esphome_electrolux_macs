@@ -57,6 +57,7 @@ sensor:
                 "Sportswear", "Outdoor", "Denim", "OneGo 4h 5kg", "OneGo 1h 1kg"};
               if (std::isnan(x)) return std::string("");
               int i = (int) x;
+              if (i == 0) return std::string("");  // sent at power on, before a program is set
               if (i >= 1 && i <= 14) return std::string(N[i]);
               return "Unknown " + to_string(i);
     remaining_time:
