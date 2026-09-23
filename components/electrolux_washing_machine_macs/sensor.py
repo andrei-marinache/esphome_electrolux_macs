@@ -30,6 +30,7 @@ CONF_CURRENT_DRUM_SPEED = "current_drum_speed"
 CONF_CURRENT_WATER_TEMPERATURE = "current_water_temperature"
 CONF_TOTAL_WORKING_HOURS = "total_working_hours"
 CONF_TOTAL_CYCLES = "total_cycles"
+CONF_SUB_PHASE = "sub_phase"
 
 TYPES = [
     CONF_REMAINING_TIME,
@@ -42,7 +43,8 @@ TYPES = [
     CONF_CURRENT_DRUM_SPEED,
     CONF_CURRENT_WATER_TEMPERATURE,
     CONF_TOTAL_WORKING_HOURS,
-    CONF_TOTAL_CYCLES
+    CONF_TOTAL_CYCLES,
+    CONF_SUB_PHASE,
 ]
 
 CONFIG_SCHEMA = cv.Schema(
@@ -111,7 +113,11 @@ CONFIG_SCHEMA = cv.Schema(
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             state_class=STATE_CLASS_TOTAL_INCREASING,
             device_class=DEVICE_CLASS_DURATION,
-        )
+        ),
+        cv.Optional(CONF_SUB_PHASE): sensor.sensor_schema(
+            accuracy_decimals=0,
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        ),
     }
 ).extend(cv.COMPONENT_SCHEMA)
 

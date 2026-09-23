@@ -21,7 +21,7 @@ If you have access and motivation to add new devices, feel free to open an issue
 
 To check what infos I've found, look at FINDINGS.md
 
-For washer-dryers like the EW8W261B, set `start_delay_index: 11` (see "EW8W261B washer-dryer" in `EWX FINDINGS.md`) and see `example_electrolux_ew8w261b_xiao_esp32c5.yaml`.
+For the EW8W261B washer-dryer, set `model: EW8W261B` and `motor_drum_ratio: 10.5` (see "EW8W261B washer-dryer" in `EWX FINDINGS.md`) and see `example_electrolux_ew8w261b_xiao_esp32c5.yaml`.
 The pure decoding helpers have a host test: `g++ -std=c++17 -I components tests/decode_test.cpp -o /tmp/decode_test && /tmp/decode_test`.
 
 ### Connection to the dryer

@@ -63,6 +63,9 @@ void ElectroluxWashingMachineMacsComponent::decode_ui_(uint8_t target, uint8_t s
           if (this->easy_iron_binary_sensor_) this->easy_iron_binary_sensor_->publish_state(NAN);
           if (this->anti_crease_binary_sensor_) this->anti_crease_binary_sensor_->publish_state(NAN);
           if (this->washing_enabled_binary_sensor_) this->washing_enabled_binary_sensor_->publish_state(NAN);
+          if (this->drain_pump_binary_sensor_) this->drain_pump_binary_sensor_->publish_state(0);
+          if (this->water_in_drum_binary_sensor_) this->water_in_drum_binary_sensor_->publish_state(0);
+          if (this->drum_turning_binary_sensor_) this->drum_turning_binary_sensor_->publish_state(0);
 #endif
 #ifdef USE_TEXT_SENSOR
           if (this->drying_mode_text_sensor_) this->drying_mode_text_sensor_->publish_state("");
@@ -95,7 +98,19 @@ void ElectroluxWashingMachineMacsComponent::decode_ui_(uint8_t target, uint8_t s
         default:
           break;
       }
-      if (this->door_locked_binary_sensor_) this->door_locked_binary_sensor_->publish_state((data[5] & 0x03) == 0);
+#ifdef USE_BINARY_SENSOR
+      if (this->door_locked_binary_sensor_) this->door_locked_binary_sensor_->publish_state(door_locked(this->ew8w_, data[5]));
+      // EW8W261B, checked over a full wash + dry cycle: [5] 0x04 follows the inverter speed,
+      // [5] 0x20 is set from fill until drain, [7] 0x80 pulses at every drain and through the spin
+      if (this->drum_turning_binary_sensor_) this->drum_turning_binary_sensor_->publish_state((data[5] & 0x04) != 0);
+      if (this->water_in_drum_binary_sensor_) this->water_in_drum_binary_sensor_->publish_state((data[5] & 0x20) != 0);
+      if (this->drain_pump_binary_sensor_ && data.size() >= 8)
+        this->drain_pump_binary_sensor_->publish_state((data[7] & 0x80) != 0);
+#endif
+#ifdef USE_SENSOR
+      // [4] changes within a phase (08 early in the spin, 10 near the end of drying, 20 when finished); meaning unknown
+      if (this->sub_phase_sensor_) this->sub_phase_sensor_->publish_state(data[4]);
+#endif
       break;
       
     case MACS_MESSAGE_TYPE_PROGRAM_SET:
@@ -104,7 +119,7 @@ void ElectroluxWashingMachineMacsComponent::decode_ui_(uint8_t target, uint8_t s
       if (this->wash_temperature_sensor_) this->wash_temperature_sensor_->publish_state((float) data[2]);
       // [3] bit 0x80 is set on washer-dryers when washing is off (dry only); not part of the spin speed
       if (this->spin_speed_sensor_) this->spin_speed_sensor_->publish_state((float) (data[3] & 0x7F) * 50);
-      if (this->start_delay_time_sensor_) this->start_delay_time_sensor_->publish_state((float) data[this->start_delay_index_] * 30);
+      if (this->start_delay_time_sensor_) this->start_delay_time_sensor_->publish_state((float) data[this->ew8w_ ? 11 : 9] * 30);
       if (this->selected_program_number_sensor_) this->selected_program_number_sensor_->publish_state((float) data[12]);
       if (this->time_manager_sensor_) this->time_manager_sensor_->publish_state(time_manager_level(data[5], data[7]));
 #endif
@@ -198,7 +213,7 @@ void ElectroluxWashingMachineMacsComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "Electrolux Washing Machine MACS");
   esphome::electrolux_macs::ElectroluxMacsComponent::dump_config();
   ESP_LOGCONFIG(TAG, "  Motor to drum ratio = %f", this->motor_drum_ratio_);
-  ESP_LOGCONFIG(TAG, "  Start delay index = %u", this->start_delay_index_);
+  ESP_LOGCONFIG(TAG, "  Model = %s", this->ew8w_ ? "EW8W261B" : "EWX14");
 }
 
 }  // namespace electrolux_washing_machine_macs

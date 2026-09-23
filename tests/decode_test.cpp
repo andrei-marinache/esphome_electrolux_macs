@@ -21,8 +21,15 @@ int main() {
   assert(drying_mode_name(0xC0, 0x0A) == "Auto: extra dry");
   assert(drying_mode_name(0xC2, 0x0A) == "Auto: iron dry");
   assert(drying_mode_name(0x80, 0x0F) == "Timed 15 min");
+  assert(drying_mode_name(0x91, 0x0A) == "Program");  // OneGo 1h
+  // Door lock, EW8W261B sequence at pause: 01 -> 03 -> 00, and 25 while washing
+  assert(door_locked(true, 0x25));
+  assert(door_locked(true, 0x01));
+  assert(!door_locked(true, 0x00));
+  assert(door_locked(false, 0x00));  // EWX14 behaviour unchanged
   // Phases: unknown codes are reported raw
   assert(phase_name(0x02, 0x03) == "Rinse");
+  assert(phase_name(0x02, 0x05) == "Drying");
   assert(phase_name(0x02, 0x07) == "Unknown phase 0x07");
   assert(phase_name(0x0C, 0x00) == "Unknown state 0x0C");
   puts("ok");

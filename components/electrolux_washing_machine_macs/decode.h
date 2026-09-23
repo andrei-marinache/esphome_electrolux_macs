@@ -31,6 +31,7 @@ inline std::string hex_code(const char *prefix, uint8_t v) {
 // bits 0-1 = dryness level; [9] = timed drying minutes.
 inline std::string drying_mode_name(uint8_t b8, uint8_t b9) {
   if (!(b8 & 0x80)) return "Off";
+  if (b8 & 0x10) return "Program";  // seen on OneGo, which has its own fixed drying; not settable by buttons
   if (!(b8 & 0x40)) return "Timed " + std::to_string(b9) + " min";
   switch (b8 & 0x03) {
     case 0: return "Auto: extra dry";
@@ -40,7 +41,11 @@ inline std::string drying_mode_name(uint8_t b8, uint8_t b9) {
   }
 }
 
-// State frame: codes from EWX FINDINGS.md. Anything not listed is reported raw instead of guessed.
+// State frame [5]. EWX14 (author's code): locked when bits 0-1 are clear.
+// EW8W261B: bit 0x01 is the lock, 0x02 is set briefly while locking or unlocking.
+inline bool door_locked(bool ew8w, uint8_t b5) { return ew8w ? (b5 & 0x01) != 0 : (b5 & 0x03) == 0; }
+
+// State frame: codes from EWX FINDINGS.md, plus 0x05 (drying) seen on EW8W261B. Anything not listed is reported raw instead of guessed.
 inline std::string phase_name(uint8_t state, uint8_t phase) {
   switch (state) {
     case 0x01: return "Idle";
@@ -51,6 +56,7 @@ inline std::string phase_name(uint8_t state, uint8_t phase) {
         case 0x02: return "Wash";
         case 0x03: return "Rinse";
         case 0x04: return "Spin";
+        case 0x05: return "Drying";
         default: return hex_code("Unknown phase", phase);
       }
     case 0x03: return "Finished";

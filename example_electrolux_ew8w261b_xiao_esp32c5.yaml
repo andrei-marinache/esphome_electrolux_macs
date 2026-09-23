@@ -40,7 +40,8 @@ uart:
 
 electrolux_washing_machine_macs:
   uart_id: uart_macs
-  start_delay_index: 11
+  model: EW8W261B
+  motor_drum_ratio: 10.5
 
 sensor:
   - platform: electrolux_washing_machine_macs
@@ -78,6 +79,8 @@ sensor:
       name: "Working hours"
     total_cycles:
       name: "Total cycles"
+    sub_phase:
+      name: "Sub-phase"
 
 binary_sensor:
   - platform: electrolux_washing_machine_macs
@@ -99,6 +102,12 @@ binary_sensor:
       name: "Anti-crease"
     washing_enabled:
       name: "Washing enabled"
+    drain_pump:
+      name: "Drain pump"
+    water_in_drum:
+      name: "Water in drum"
+    drum_turning:
+      name: "Drum turning"
 
 text_sensor:
   - platform: template

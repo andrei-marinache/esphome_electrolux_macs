@@ -398,6 +398,28 @@ Program set frame (`50 03 ...`):
 | `[11]` | | start delay, x30 min (`[9]` on EWX14) |
 | `[12]` | | program = position of the selector, 1-based |
 
-Differences from EWX14: start delay is at `[11]`, the heartbeat is `5F 00`, and program numbers follow this model's selector.
-There is also a node `2B` sending `20 03 ...` to the controller every 500 ms, not decoded yet.
+`[8]` `0x10` shows up with `0x80` on OneGo programs (fixed program drying); it cannot be set with the buttons.
+
+State frame (`52 00 ...`), checked over a full OneGo 1h wash + dry cycle:
+
+| Byte | Value / bits | Meaning |
+|------|--------------|---------|
+| `[2]` | `01` `02` `03` `04` `06` `0B` | idle, running, finished, paused, waiting for door unlock, off (same as EWX14) |
+| `[3]` | `02` `03` `04` `05` | wash, rinse, spin, **drying** (`05` is new) |
+| `[4]` | `08` `10` `20` | changes within a phase: early spin, near the end of drying, finished; meaning unknown |
+| `[5]` | `0x01` | door locked (EWX14 code reads bits 0-1 clear as locked; inverted here) |
+| `[5]` | `0x02` | set for about a second while the door locks or unlocks |
+| `[5]` | `0x04` | drum turning; follows the inverter speed |
+| `[5]` | `0x20` | water in the drum: set after each fill, cleared by the following drain |
+| `[7]` | `0x80` | drain pump: pulses at every drain and through the spin |
+
+No fill valve bit was found. The inverter (`25`) frame `12 03` matches EWX14: `[2..3]` & 0x7FFF motor rpm, `[6]` water temperature (rose to the 30 °C setpoint while washing), `[19..20]` signed target rpm.
+The max target during a 1200 rpm spin was 12600 motor rpm, so the motor to drum ratio is 10.5.
+`[13..14]` is higher with water in the drum, but it also moves with the motor load, so it is not used as a water level.
+
+Counters (`56 03 02` / `56 03 03`) before and after the same cycle: working hours x10 went up by 10, and three cycle counters (851, 819, 413) each went up by 1.
+
+Node `2B` identifies as `SWA000006` (`11 00` frame). It sends `20 03 ...` every 500 ms while the machine is on but idle and stops when a program starts.
+
+Differences from EWX14: start delay is at `[11]`, the door lock bit is inverted, the heartbeat is `5F 00`, and program numbers follow this model's selector.
 
