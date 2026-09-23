@@ -21,6 +21,7 @@ void ElectroluxWashingMachineMacsComponent::decode_ui_(uint8_t target, uint8_t s
       switch (data[2]) {
         case MACS_TIME_CHANGE_PROGRAM_TIME:
           tmp_ = encode_uint16(data[3], data[4]);
+          this->remaining_min_ = tmp_ == 65535 ? NAN : (float) tmp_;
           if (this->remaining_time_sensor_) {
             if (tmp_ == 65535) this->remaining_time_sensor_->publish_state(NAN);
             else this->remaining_time_sensor_->publish_state((float) tmp_);
@@ -55,6 +56,7 @@ void ElectroluxWashingMachineMacsComponent::decode_ui_(uint8_t target, uint8_t s
 #ifdef USE_TEXT_SENSOR
       if (this->phase_text_sensor_) this->phase_text_sensor_->publish_state(phase_name(data[2], data[3]));
 #endif
+      this->on_cycle_state_(data[2]);
       switch (data[2]) {
         case MACS_APPLIANCE_STATE_STANDBY:
 #ifdef USE_BINARY_SENSOR
@@ -213,6 +215,77 @@ void ElectroluxWashingMachineMacsComponent::decode_data_(uint8_t target, uint8_t
     default:
       break;
   }
+}
+
+void ElectroluxWashingMachineMacsComponent::setup() {
+  esphome::electrolux_macs::ElectroluxMacsComponent::setup();
+  this->cycle_pref_ = global_preferences->make_preference<CycleTracker>(fnv1_hash("electrolux_wm_cycle"));
+  if (!this->cycle_pref_.load(&this->cycle_)) this->cycle_ = CycleTracker{};
+  this->set_interval("cycle", 60000, [this]() { this->publish_cycle_(); });
+}
+
+#ifdef USE_TIME
+// Local time with its UTC offset, e.g. 2026-09-24T14:20:00+03:00 (a timestamp for HA, readable in the web UI).
+// ESPHome applies the time zone itself, so the offset is worked out here rather than taken from strftime %z.
+std::string ElectroluxWashingMachineMacsComponent::iso_time_(int64_t epoch) {
+  ESPTime local = ESPTime::from_epoch_local(epoch);
+  ESPTime as_utc = local;
+  as_utc.recalc_timestamp_utc();
+  return local.strftime("%Y-%m-%dT%H:%M:%S") + utc_offset(as_utc.timestamp - epoch);
+}
+#endif
+
+void ElectroluxWashingMachineMacsComponent::on_cycle_state_(uint8_t state) {
+#ifdef USE_TIME
+  if (this->time_ == nullptr) return;
+  ESPTime now = this->time_->now();
+  if (!now.is_valid()) return;
+  if (state == MACS_APPLIANCE_STATE_FINISHED && this->cycle_.active()) {
+#ifdef USE_SENSOR
+    if (this->elapsed_time_sensor_) this->elapsed_time_sensor_->publish_state(this->cycle_.elapsed_min(now.timestamp));
+    if (this->program_progress_sensor_) this->program_progress_sensor_->publish_state(100);
+#endif
+#ifdef USE_TEXT_SENSOR
+    if (this->estimated_end_text_sensor_) this->estimated_end_text_sensor_->publish_state(this->iso_time_(now.timestamp));
+#endif
+  }
+  bool started = !this->cycle_.active();
+  if (this->cycle_.on_state(state, now.timestamp)) {
+    this->cycle_pref_.save(&this->cycle_);
+    if (started && this->cycle_.active()) this->publish_cycle_();
+  }
+  // Clear the values once the machine is switched off or back to setting up a program
+  if ((state == MACS_APPLIANCE_STATE_IDLE || state == MACS_APPLIANCE_STATE_STANDBY) && this->cycle_shown_) {
+    this->cycle_shown_ = false;
+#ifdef USE_SENSOR
+    if (this->elapsed_time_sensor_) this->elapsed_time_sensor_->publish_state(NAN);
+    if (this->program_progress_sensor_) this->program_progress_sensor_->publish_state(NAN);
+#endif
+#ifdef USE_TEXT_SENSOR
+    if (this->program_start_text_sensor_) this->program_start_text_sensor_->publish_state("");
+    if (this->estimated_end_text_sensor_) this->estimated_end_text_sensor_->publish_state("");
+#endif
+  }
+#endif
+}
+
+void ElectroluxWashingMachineMacsComponent::publish_cycle_() {
+#ifdef USE_TIME
+  if (this->time_ == nullptr || !this->cycle_.active()) return;
+  ESPTime now = this->time_->now();
+  if (!now.is_valid()) return;
+  this->cycle_shown_ = true;
+  float elapsed = this->cycle_.elapsed_min(now.timestamp);
+#ifdef USE_SENSOR
+  if (this->elapsed_time_sensor_) this->elapsed_time_sensor_->publish_state(elapsed);
+  if (this->program_progress_sensor_) this->program_progress_sensor_->publish_state(cycle_progress(elapsed, this->remaining_min_));
+#endif
+#ifdef USE_TEXT_SENSOR
+  if (this->program_start_text_sensor_) this->program_start_text_sensor_->publish_state(this->iso_time_(this->cycle_.start));
+  if (this->estimated_end_text_sensor_ && !std::isnan(this->remaining_min_))
+    this->estimated_end_text_sensor_->publish_state(this->iso_time_(now.timestamp + (int64_t) (this->remaining_min_ * 60)));
+#endif
+#endif
 }
 
 void ElectroluxWashingMachineMacsComponent::dump_config() {

@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cstdio>
 #include "electrolux_washing_machine_macs/decode.h"
+#include "electrolux_washing_machine_macs/cycle.h"
 using namespace esphome::electrolux_washing_machine_macs;
 
 int main() {
@@ -42,5 +43,22 @@ int main() {
   assert(phase_name(0x02, 0x05) == "Drying");
   assert(phase_name(0x02, 0x07) == "Unknown phase 0x07");
   assert(phase_name(0x0C, 0x00) == "Unknown state 0x0C");
+  // Program tracking: delayed start not counted, pauses subtracted, reset at the end
+  CycleTracker c;
+  assert(!c.on_state(0x08, 1000));  // delayed start: clock not started
+  assert(c.on_state(0x02, 4600) && c.start == 4600);
+  assert(!c.on_state(0x02, 4700));
+  assert(c.on_state(0x04, 5200));   // pause after 10 min
+  assert(c.elapsed_min(5800) == 10);  // still paused
+  assert(c.on_state(0x02, 5800));   // resume after a 10 min pause
+  assert(c.elapsed_min(6400) == 20);
+  assert(cycle_progress(20, 60) == 25);
+  assert(cycle_progress(20, 0) == 99);
+  assert(std::isnan(cycle_progress(20, NAN)));
+  assert(c.on_state(0x03, 6400) && !c.active());
+  assert(!c.on_state(0x0B, 6500));
+  assert(utc_offset(3 * 3600) == "+03:00");
+  assert(utc_offset(-(5 * 3600 + 30 * 60)) == "-05:30");
+  assert(utc_offset(0) == "+00:00");
   puts("ok");
 }

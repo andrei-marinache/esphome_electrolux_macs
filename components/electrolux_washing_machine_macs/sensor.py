@@ -17,6 +17,7 @@ from esphome.const import (
     UNIT_HOUR,
     UNIT_REVOLUTIONS_PER_MINUTE,
     UNIT_KILOGRAM,
+    UNIT_PERCENT,
 )
 
 from . import CONF_ELECTROLUX_WASHING_MACHINE_MACS_ID, ElectroluxWashingMachineMacsComponent
@@ -34,6 +35,8 @@ CONF_TOTAL_WORKING_HOURS = "total_working_hours"
 CONF_TOTAL_CYCLES = "total_cycles"
 CONF_SUB_PHASE = "sub_phase"
 CONF_LAUNDRY_LOAD = "laundry_load"
+CONF_PROGRAM_PROGRESS = "program_progress"
+CONF_ELAPSED_TIME = "elapsed_time"
 
 TYPES = [
     CONF_REMAINING_TIME,
@@ -49,6 +52,8 @@ TYPES = [
     CONF_TOTAL_CYCLES,
     CONF_SUB_PHASE,
     CONF_LAUNDRY_LOAD,
+    CONF_PROGRAM_PROGRESS,
+    CONF_ELAPSED_TIME,
 ]
 
 CONFIG_SCHEMA = cv.Schema(
@@ -128,6 +133,20 @@ CONFIG_SCHEMA = cv.Schema(
             state_class=STATE_CLASS_MEASUREMENT,
             device_class=DEVICE_CLASS_WEIGHT,
             icon="mdi:scale",
+        ),
+        # Program tracking: need time_id on the hub
+        cv.Optional(CONF_PROGRAM_PROGRESS): sensor.sensor_schema(
+            unit_of_measurement=UNIT_PERCENT,
+            accuracy_decimals=0,
+            state_class=STATE_CLASS_MEASUREMENT,
+            icon="mdi:progress-clock",
+        ),
+        cv.Optional(CONF_ELAPSED_TIME): sensor.sensor_schema(
+            unit_of_measurement=UNIT_MINUTE,
+            accuracy_decimals=0,
+            state_class=STATE_CLASS_MEASUREMENT,
+            device_class=DEVICE_CLASS_DURATION,
+            icon=ICON_TIMER,
         ),
     }
 ).extend(cv.COMPONENT_SCHEMA)

@@ -8,6 +8,11 @@
 #include "esphome/core/log.h"
 #include "esphome/core/defines.h"
 #include "esphome/components/electrolux_macs/electrolux_macs.h"
+#include "esphome/core/preferences.h"
+#ifdef USE_TIME
+#include "esphome/components/time/real_time_clock.h"
+#endif
+#include "cycle.h"
 
 #include <vector>
 
@@ -22,7 +27,11 @@ static const uint8_t MACS_WM_WASH_PHASE_ANTI_CREASE = 0x04;
 class ElectroluxWashingMachineMacsComponent : public esphome::electrolux_macs::ElectroluxMacsComponent {
   public:
   ElectroluxWashingMachineMacsComponent(uart::UARTComponent *uart) : esphome::electrolux_macs::ElectroluxMacsComponent(uart) {}
+  void setup() override;
   void dump_config() override;
+#ifdef USE_TIME
+  void set_time(time::RealTimeClock *time) { this->time_ = time; }
+#endif
   void set_motor_drum_ratio(float motor_drum_ratio) { this->motor_drum_ratio_ = motor_drum_ratio;}
   void set_ew8w(bool ew8w) { this->ew8w_ = ew8w; }
 
@@ -40,12 +49,16 @@ class ElectroluxWashingMachineMacsComponent : public esphome::electrolux_macs::E
   SUB_SENSOR(total_cycles)
   SUB_SENSOR(sub_phase)
   SUB_SENSOR(laundry_load)
+  SUB_SENSOR(program_progress)
+  SUB_SENSOR(elapsed_time)
 #endif
 
 #ifdef USE_TEXT_SENSOR
   SUB_TEXT_SENSOR(active_alarm)
   SUB_TEXT_SENSOR(phase)
   SUB_TEXT_SENSOR(drying_mode)
+  SUB_TEXT_SENSOR(program_start)
+  SUB_TEXT_SENSOR(estimated_end)
 #endif
 
 #ifdef USE_BINARY_SENSOR
@@ -67,6 +80,17 @@ class ElectroluxWashingMachineMacsComponent : public esphome::electrolux_macs::E
   protected:
   float motor_drum_ratio_{1};
   bool ew8w_{false};
+  // Program tracking (progress, elapsed, start, estimated end); needs time_id for the clock
+  CycleTracker cycle_{};
+  ESPPreferenceObject cycle_pref_;
+  float remaining_min_{NAN};
+  bool cycle_shown_{false};
+#ifdef USE_TIME
+  time::RealTimeClock *time_{nullptr};
+  std::string iso_time_(int64_t epoch);
+#endif
+  void on_cycle_state_(uint8_t state);
+  void publish_cycle_();
   void decode_data_(uint8_t target, uint8_t source, std::vector<uint8_t> data) override;
   void decode_inverter_(uint8_t target, uint8_t source, std::vector<uint8_t> data);
   void decode_ui_(uint8_t target, uint8_t source, std::vector<uint8_t> data);
