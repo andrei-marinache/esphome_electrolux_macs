@@ -140,7 +140,7 @@ void ElectroluxWashingMachineMacsComponent::decode_ui_(uint8_t target, uint8_t s
       if (this->washing_enabled_binary_sensor_) this->washing_enabled_binary_sensor_->publish_state((data[3] & 0x80) == 0);
 #endif
 #ifdef USE_TEXT_SENSOR
-      if (this->drying_mode_text_sensor_) this->drying_mode_text_sensor_->publish_state(drying_mode_name(data[8], data[9]));
+      if (this->drying_mode_text_sensor_) this->drying_mode_text_sensor_->publish_state(drying_mode_name(data[8], data[9], this->ew8w_ && fixed_drying_ew8w(data[12])));
 #endif
       break;
       

@@ -41,6 +41,9 @@ inline float time_manager_level_ew8w(uint8_t program, uint8_t b4, uint8_t b5, ui
   }
 }
 
+// EW8W261B programs 13 (OneGo 4h 5kg) and 14 (OneGo 1h 1kg) wash and dry with fixed drying.
+inline bool fixed_drying_ew8w(uint8_t program) { return program == 13 || program == 14; }
+
 inline std::string hex_code(const char *prefix, uint8_t v) {
   char buf[32];
   snprintf(buf, sizeof(buf), "%s 0x%02X", prefix, v);
@@ -49,9 +52,10 @@ inline std::string hex_code(const char *prefix, uint8_t v) {
 
 // Washer-dryers, program set frame: [8] 0x80 = drying on, 0x40 = auto dry (otherwise timed),
 // bits 0-1 = dryness level; [9] = timed drying minutes.
-inline std::string drying_mode_name(uint8_t b8, uint8_t b9) {
+// fixed_by_program: the program sets the drying itself (EW8W261B OneGo), [8]/[9] don't describe it.
+inline std::string drying_mode_name(uint8_t b8, uint8_t b9, bool fixed_by_program = false) {
   if (!(b8 & 0x80)) return "Off";
-  if (b8 & 0x10) return "Fixed by program";  // seen on OneGo, which has its own fixed drying; not settable by buttons
+  if (fixed_by_program) return "Fixed by program";
   if (!(b8 & 0x40)) return "Timed " + std::to_string(b9) + " min";
   switch (b8 & 0x03) {
     case 0: return "Auto: extra dry";

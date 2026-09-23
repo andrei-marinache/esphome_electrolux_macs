@@ -28,7 +28,10 @@ int main() {
   assert(drying_mode_name(0xC0, 0x0A) == "Auto: extra dry");
   assert(drying_mode_name(0xC2, 0x0A) == "Auto: iron dry");
   assert(drying_mode_name(0x80, 0x0F) == "Timed 15 min");
-  assert(drying_mode_name(0x91, 0x0A) == "Fixed by program");  // OneGo 1h
+  // OneGo 1h sends 0x91 and OneGo 4h 0x81 (which would read as timed), so it goes by program number
+  assert(drying_mode_name(0x91, 0x0A, fixed_drying_ew8w(14)) == "Fixed by program");
+  assert(drying_mode_name(0x81, 0x0A, fixed_drying_ew8w(13)) == "Fixed by program");
+  assert(drying_mode_name(0x81, 0x0A, fixed_drying_ew8w(1)) == "Timed 10 min");
   // Door lock, EW8W261B sequence at pause: 01 -> 03 -> 00, and 25 while washing
   assert(door_locked(true, 0x25));
   assert(door_locked(true, 0x01));
