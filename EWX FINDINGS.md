@@ -418,9 +418,8 @@ State frame (`52 00 ...`), checked over a full OneGo 1h wash + dry cycle:
 | `[5]` | `0x20` | water in the drum: set after each fill, cleared by the following drain |
 | `[7]` | `0x80` | drain pump: pulses at every drain and through the spin |
 
-No fill valve bit was found. The inverter (`25`) frame `12 03` matches EWX14: `[2..3]` & 0x7FFF motor rpm, `[6]` water temperature (rose to the 30 °C setpoint while washing), `[19..20]` signed target rpm.
+The inverter (`25`) frame `12 03` matches EWX14: `[2..3]` & 0x7FFF motor rpm, `[6]` water temperature (rose to the 30 °C setpoint while washing), `[19..20]` signed target rpm.
 The max target during a 1200 rpm spin was 12600 motor rpm, so the motor to drum ratio is 10.5.
-`[13..14]` is higher with water in the drum, but it also moves with the motor load, so it is not used as a water level.
 
 Counters (`56 03 02` / `56 03 03`) before and after the same cycle: working hours x10 went up by 10, and three cycle counters (851, 819, 413) each went up by 1.
 
