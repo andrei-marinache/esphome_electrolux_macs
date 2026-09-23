@@ -18,6 +18,8 @@ CONF_STAIN_WASH = "stain_wash"
 CONF_EXTRA_RINSE = "extra_rinse"
 CONF_SOFT_PLUS = "soft_plus"
 CONF_EASY_IRON = "easy_iron"
+CONF_ANTI_CREASE = "anti_crease"
+CONF_WASHING_ENABLED = "washing_enabled"
 
 TYPES = [
     CONF_POWERED_ON,
@@ -28,6 +30,8 @@ TYPES = [
     CONF_EXTRA_RINSE,
     CONF_SOFT_PLUS,
     CONF_EASY_IRON,
+    CONF_ANTI_CREASE,
+    CONF_WASHING_ENABLED,
 ]
 
 CONFIG_SCHEMA = cv.Schema(
@@ -51,6 +55,10 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_SOFT_PLUS): binary_sensor.binary_sensor_schema(
         ),
         cv.Optional(CONF_EASY_IRON): binary_sensor.binary_sensor_schema(
+        ),
+        cv.Optional(CONF_ANTI_CREASE): binary_sensor.binary_sensor_schema(
+        ),
+        cv.Optional(CONF_WASHING_ENABLED): binary_sensor.binary_sensor_schema(
         ),
     }
 ).extend(cv.COMPONENT_SCHEMA)

@@ -24,6 +24,7 @@ class ElectroluxWashingMachineMacsComponent : public esphome::electrolux_macs::E
   ElectroluxWashingMachineMacsComponent(uart::UARTComponent *uart) : esphome::electrolux_macs::ElectroluxMacsComponent(uart) {}
   void dump_config() override;
   void set_motor_drum_ratio(float motor_drum_ratio) { this->motor_drum_ratio_ = motor_drum_ratio;}
+  void set_start_delay_index(uint8_t start_delay_index) { this->start_delay_index_ = start_delay_index; }
 
 #ifdef USE_SENSOR
   SUB_SENSOR(remaining_time)
@@ -41,7 +42,8 @@ class ElectroluxWashingMachineMacsComponent : public esphome::electrolux_macs::E
 
 #ifdef USE_TEXT_SENSOR
   SUB_TEXT_SENSOR(active_alarm)
-//  SUB_TEXT_SENSOR(selected_program_name)
+  SUB_TEXT_SENSOR(phase)
+  SUB_TEXT_SENSOR(drying_mode)
 #endif
 
 #ifdef USE_BINARY_SENSOR
@@ -53,10 +55,13 @@ class ElectroluxWashingMachineMacsComponent : public esphome::electrolux_macs::E
   SUB_BINARY_SENSOR(extra_rinse)
   SUB_BINARY_SENSOR(soft_plus)
   SUB_BINARY_SENSOR(easy_iron)
+  SUB_BINARY_SENSOR(anti_crease)
+  SUB_BINARY_SENSOR(washing_enabled)
 #endif
 
   protected:
   float motor_drum_ratio_{1};
+  uint8_t start_delay_index_{9};
   void decode_data_(uint8_t target, uint8_t source, std::vector<uint8_t> data) override;
   void decode_inverter_(uint8_t target, uint8_t source, std::vector<uint8_t> data);
   void decode_ui_(uint8_t target, uint8_t source, std::vector<uint8_t> data);

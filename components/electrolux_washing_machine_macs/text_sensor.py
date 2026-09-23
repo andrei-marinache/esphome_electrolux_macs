@@ -7,18 +7,21 @@ from esphome.const import (
 
 from . import CONF_ELECTROLUX_WASHING_MACHINE_MACS_ID, ElectroluxWashingMachineMacsComponent
 
-CONF_SELECTED_PROGRAM_NAME = "selected_program_name"
 CONF_ACTIVE_ALARM = "active_alarm"
+CONF_PHASE = "phase"
+CONF_DRYING_MODE = "drying_mode"
 
 TYPES = [
-    CONF_SELECTED_PROGRAM_NAME,
-    CONF_ACTIVE_ALARM
+    CONF_ACTIVE_ALARM,
+    CONF_PHASE,
+    CONF_DRYING_MODE,
 ]
 
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(CONF_ELECTROLUX_WASHING_MACHINE_MACS_ID): cv.use_id(ElectroluxWashingMachineMacsComponent),
-        cv.Optional(CONF_SELECTED_PROGRAM_NAME): text_sensor.text_sensor_schema(),
+        cv.Optional(CONF_PHASE): text_sensor.text_sensor_schema(),
+        cv.Optional(CONF_DRYING_MODE): text_sensor.text_sensor_schema(),
         cv.Optional(CONF_ACTIVE_ALARM): text_sensor.text_sensor_schema(
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC
         )

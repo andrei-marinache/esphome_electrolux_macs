@@ -373,3 +373,31 @@ C9 - from inverter
    21 25 15 12
 ```
 
+
+## EW8W261B washer-dryer (PerfectCare 800)
+
+Captured on the bus between controller `21` and front panel `2A`, each value checked against the display.
+Indexes are into `data` (`data[0]` = message type).
+
+Program set frame (`50 03 ...`):
+
+| Byte | Bits | Meaning |
+|------|------|---------|
+| `[2]` | | wash temperature, °C |
+| `[3]` | `0x7F` | spin speed / 50 |
+| `[3]` | `0x80` | washing off (dry only); `[4]` `0x01` always changes together with it |
+| `[5]` | `0x01` | anti-crease |
+| `[5]` | `0x20` | Time Manager level 1 |
+| `[6]` | `0x04` / `0x10` / `0x20` | stain / extra rinse / soft plus (same as EWX14) |
+| `[7]` | `0x80` | pre-wash (same as EWX14) |
+| `[7]` | `0x1B` | Time Manager: `01` = 5 bars, `02` = 4, `08` = 3, `10` = 2, `00` = 1 (with `[5]` `0x20`) |
+| `[8]` | `0x80` | drying on |
+| `[8]` | `0x40` | auto dry (otherwise timed dry) |
+| `[8]` | `0x03` | dryness level: `0` = extra dry, `1` = cupboard dry, `2` = iron dry |
+| `[9]` | | timed dry minutes (+5 per button press) |
+| `[11]` | | start delay, x30 min (`[9]` on EWX14) |
+| `[12]` | | program = position of the selector, 1-based |
+
+Differences from EWX14: start delay is at `[11]`, the heartbeat is `5F 00`, and program numbers follow this model's selector.
+There is also a node `2B` sending `20 03 ...` to the controller every 500 ms, not decoded yet.
+

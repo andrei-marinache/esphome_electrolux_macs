@@ -1,4 +1,5 @@
 #include "electrolux_washing_machine_macs.h"
+#include "decode.h"
 #include "esphome/core/log.h"
 #include "esphome/core/application.h"
 
@@ -8,13 +9,14 @@ namespace electrolux_washing_machine_macs {
 
 static const char *const TAG = "electrolux_washing_machine_macs";
 
-
 void ElectroluxWashingMachineMacsComponent::decode_ui_(uint8_t target, uint8_t source, std::vector<uint8_t> data) {  
+  if (data.size() < 3) return;
   uint8_t msg_type_ = data[0];
   char alarm_buf[4] = {0};
   uint16_t tmp_ = 0;
   switch (msg_type_) {
     case MACS_MESSAGE_TYPE_TIME_CHANGE:
+      if (data.size() < 5) break;
 #ifdef USE_SENSOR
       switch (data[2]) {
         case MACS_TIME_CHANGE_PROGRAM_TIME:
@@ -44,6 +46,10 @@ void ElectroluxWashingMachineMacsComponent::decode_ui_(uint8_t target, uint8_t s
       break;
       
     case MACS_MESSAGE_TYPE_STATE:
+      if (data.size() < 6) break;
+#ifdef USE_TEXT_SENSOR
+      if (this->phase_text_sensor_) this->phase_text_sensor_->publish_state(phase_name(data[2], data[3]));
+#endif
       switch (data[2]) {
         case MACS_APPLIANCE_STATE_STANDBY:
 #ifdef USE_BINARY_SENSOR
@@ -55,6 +61,11 @@ void ElectroluxWashingMachineMacsComponent::decode_ui_(uint8_t target, uint8_t s
           if (this->extra_rinse_binary_sensor_) this->extra_rinse_binary_sensor_->publish_state(NAN);
           if (this->soft_plus_binary_sensor_) this->soft_plus_binary_sensor_->publish_state(NAN);
           if (this->easy_iron_binary_sensor_) this->easy_iron_binary_sensor_->publish_state(NAN);
+          if (this->anti_crease_binary_sensor_) this->anti_crease_binary_sensor_->publish_state(NAN);
+          if (this->washing_enabled_binary_sensor_) this->washing_enabled_binary_sensor_->publish_state(NAN);
+#endif
+#ifdef USE_TEXT_SENSOR
+          if (this->drying_mode_text_sensor_) this->drying_mode_text_sensor_->publish_state("");
 #endif
 #ifdef USE_SENSOR
           if (this->remaining_time_sensor_) this->remaining_time_sensor_->publish_state(NAN);
@@ -88,12 +99,14 @@ void ElectroluxWashingMachineMacsComponent::decode_ui_(uint8_t target, uint8_t s
       break;
       
     case MACS_MESSAGE_TYPE_PROGRAM_SET:
+      if (data.size() < 13) break;
 #ifdef USE_SENSOR
       if (this->wash_temperature_sensor_) this->wash_temperature_sensor_->publish_state((float) data[2]);
-      if (this->spin_speed_sensor_) this->spin_speed_sensor_->publish_state((float) encode_uint16(0, data[3])*50);
-      if (this->start_delay_time_sensor_) this->start_delay_time_sensor_->publish_state((float) encode_uint16(0, data[9])*30);
+      // [3] bit 0x80 is set on washer-dryers when washing is off (dry only); not part of the spin speed
+      if (this->spin_speed_sensor_) this->spin_speed_sensor_->publish_state((float) (data[3] & 0x7F) * 50);
+      if (this->start_delay_time_sensor_) this->start_delay_time_sensor_->publish_state((float) data[this->start_delay_index_] * 30);
       if (this->selected_program_number_sensor_) this->selected_program_number_sensor_->publish_state((float) data[12]);
-      // if (this->time_manager_sensor_) this->time_manager_sensor_->publish_state((float) data[12]);
+      if (this->time_manager_sensor_) this->time_manager_sensor_->publish_state(time_manager_level(data[5], data[7]));
 #endif
 #ifdef USE_BINARY_SENSOR
       if (this->easy_iron_binary_sensor_) this->easy_iron_binary_sensor_->publish_state((data[6] & 0x01) != 0);
@@ -101,6 +114,12 @@ void ElectroluxWashingMachineMacsComponent::decode_ui_(uint8_t target, uint8_t s
       if (this->extra_rinse_binary_sensor_) this->extra_rinse_binary_sensor_->publish_state((data[6] & 0x10) != 0);
       if (this->soft_plus_binary_sensor_) this->soft_plus_binary_sensor_->publish_state((data[6] & 0x20) != 0);
       if (this->pre_wash_enabled_binary_sensor_) this->pre_wash_enabled_binary_sensor_->publish_state((data[7] & 0x80) != 0);
+      if (this->anti_crease_binary_sensor_) this->anti_crease_binary_sensor_->publish_state((data[5] & 0x01) != 0);
+      // [4] & 0x01 and [3] & 0x80 always change together when washing is turned off; [3] is used
+      if (this->washing_enabled_binary_sensor_) this->washing_enabled_binary_sensor_->publish_state((data[3] & 0x80) == 0);
+#endif
+#ifdef USE_TEXT_SENSOR
+      if (this->drying_mode_text_sensor_) this->drying_mode_text_sensor_->publish_state(drying_mode_name(data[8], data[9]));
 #endif
       break;
       
@@ -121,10 +140,12 @@ void ElectroluxWashingMachineMacsComponent::decode_ui_(uint8_t target, uint8_t s
 }
 
 void ElectroluxWashingMachineMacsComponent::decode_inverter_(uint8_t target, uint8_t source, std::vector<uint8_t> data) {
+  if (data.empty()) return;
   int16_t tmp_ = 0;
   if(source == MACS_ID_INVERTER) {
     switch (data[0]) {
       case MACS_MESSAGE_TYPE_INVERTER_STATE:
+        if (data.size() < 21) break;
   #ifdef USE_SENSOR
         tmp_ = encode_uint16(data[2], data[3]) & 0x7FFF;
         if (this->current_drum_speed_sensor_) this->current_drum_speed_sensor_->publish_state(((float) tmp_) / motor_drum_ratio_);
@@ -143,6 +164,7 @@ void ElectroluxWashingMachineMacsComponent::decode_inverter_(uint8_t target, uin
   } else if(target == MACS_ID_INVERTER) {
     switch (data[0]) {
       case MACS_MESSAGE_TYPE_INVERTER_STATE:
+        if (data.size() < 4) break;
   #ifdef USE_SENSOR
         tmp_ = encode_uint16(data[2], data[3]);
         tmp_ = (tmp_ & 0x8000) ? (uint16_t)(0u - tmp_) : tmp_;
@@ -176,6 +198,7 @@ void ElectroluxWashingMachineMacsComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "Electrolux Washing Machine MACS");
   esphome::electrolux_macs::ElectroluxMacsComponent::dump_config();
   ESP_LOGCONFIG(TAG, "  Motor to drum ratio = %f", this->motor_drum_ratio_);
+  ESP_LOGCONFIG(TAG, "  Start delay index = %u", this->start_delay_index_);
 }
 
 }  // namespace electrolux_washing_machine_macs
