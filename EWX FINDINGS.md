@@ -398,6 +398,10 @@ Program set frame (`50 03 ...`):
 | `[11]` | | start delay, x30 min (`[9]` on EWX14) |
 | `[12]` | | program = position of the selector, 1-based |
 
+Time Manager is only offered on programs 1-3 and 6 (FreshScent, where `[4]` `0x80`/`0x40`/`0x20` = 3/2/1 bars). There is no availability bit: other programs still send default `[7]` values (Sportswear `10`, OneGo 4h `08`), so the level is ignored there.
+
+`56 03 04 00 00 xx yy`: `xx` looks like the program's maximum load in kg x10 (Cotton `64`, Synthetics `28`, FreshScent `0A`, OneGo 4h `32`).
+
 `[8]` `0x10` shows up with `0x80` on OneGo programs (fixed program drying); it cannot be set with the buttons.
 
 State frame (`52 00 ...`), checked over a full OneGo 1h wash + dry cycle:

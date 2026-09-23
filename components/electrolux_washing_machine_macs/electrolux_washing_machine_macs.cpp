@@ -121,7 +121,8 @@ void ElectroluxWashingMachineMacsComponent::decode_ui_(uint8_t target, uint8_t s
       if (this->spin_speed_sensor_) this->spin_speed_sensor_->publish_state((float) (data[3] & 0x7F) * 50);
       if (this->start_delay_time_sensor_) this->start_delay_time_sensor_->publish_state((float) data[this->ew8w_ ? 11 : 9] * 30);
       if (this->selected_program_number_sensor_) this->selected_program_number_sensor_->publish_state((float) data[12]);
-      if (this->time_manager_sensor_) this->time_manager_sensor_->publish_state(time_manager_level(data[5], data[7]));
+      if (this->time_manager_sensor_) this->time_manager_sensor_->publish_state(
+          this->ew8w_ ? time_manager_level_ew8w(data[12], data[4], data[5], data[7]) : time_manager_level(data[5], data[7]));
 #endif
 #ifdef USE_BINARY_SENSOR
       if (this->easy_iron_binary_sensor_) this->easy_iron_binary_sensor_->publish_state((data[6] & 0x01) != 0);

@@ -14,6 +14,13 @@ int main() {
   assert(time_manager_level(0x20, 0x00) == 1);
   assert(time_manager_level(0x00, 0x81) == 5);  // pre-wash bit (0x80) does not affect the level
   assert(std::isnan(time_manager_level(0x00, 0x00)));
+  // EW8W261B program sweep: Time Manager only on Cotton, Cotton Eco, Synthetics and FreshScent
+  assert(time_manager_level_ew8w(2, 0x00, 0x00, 0x41) == 5);  // Cotton Eco
+  assert(std::isnan(time_manager_level_ew8w(4, 0x00, 0x00, 0x01)));   // Delicate
+  assert(std::isnan(time_manager_level_ew8w(10, 0x00, 0x00, 0x10)));  // Sportswear
+  assert(std::isnan(time_manager_level_ew8w(13, 0x00, 0x00, 0x08)));  // OneGo 4h
+  assert(time_manager_level_ew8w(6, 0x80, 0x00, 0x00) == 3);  // FreshScent default
+  assert(time_manager_level_ew8w(6, 0x20, 0x00, 0x00) == 1);
   // Drying
   assert(drying_mode_name(0x00, 0x0A) == "Off");
   assert(drying_mode_name(0x01, 0x0A) == "Off");
@@ -21,7 +28,7 @@ int main() {
   assert(drying_mode_name(0xC0, 0x0A) == "Auto: extra dry");
   assert(drying_mode_name(0xC2, 0x0A) == "Auto: iron dry");
   assert(drying_mode_name(0x80, 0x0F) == "Timed 15 min");
-  assert(drying_mode_name(0x91, 0x0A) == "Program");  // OneGo 1h
+  assert(drying_mode_name(0x91, 0x0A) == "Fixed by program");  // OneGo 1h
   // Door lock, EW8W261B sequence at pause: 01 -> 03 -> 00, and 25 while washing
   assert(door_locked(true, 0x25));
   assert(door_locked(true, 0x01));

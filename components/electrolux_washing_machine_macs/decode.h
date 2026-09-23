@@ -21,6 +21,26 @@ inline float time_manager_level(uint8_t b5, uint8_t b7) {
   }
 }
 
+// EW8W261B: the panel sends default Time Manager bits even on programs without it, and several
+// programs default to other [7] values (Sportswear 0x10, OneGo 4h 0x08), so the level only means
+// something on the programs that offer it: 1-3 use [5]/[7] as above, FreshScent (6) uses [4]
+// 0x80/0x40/0x20 for 3/2/1 bars.
+inline float time_manager_level_ew8w(uint8_t program, uint8_t b4, uint8_t b5, uint8_t b7) {
+  switch (program) {
+    case 1:
+    case 2:
+    case 3: return time_manager_level(b5, b7);
+    case 6:
+      switch (b4 & 0xE0) {
+        case 0x80: return 3;
+        case 0x40: return 2;
+        case 0x20: return 1;
+        default: return NAN;
+      }
+    default: return NAN;
+  }
+}
+
 inline std::string hex_code(const char *prefix, uint8_t v) {
   char buf[32];
   snprintf(buf, sizeof(buf), "%s 0x%02X", prefix, v);
@@ -31,7 +51,7 @@ inline std::string hex_code(const char *prefix, uint8_t v) {
 // bits 0-1 = dryness level; [9] = timed drying minutes.
 inline std::string drying_mode_name(uint8_t b8, uint8_t b9) {
   if (!(b8 & 0x80)) return "Off";
-  if (b8 & 0x10) return "Program";  // seen on OneGo, which has its own fixed drying; not settable by buttons
+  if (b8 & 0x10) return "Fixed by program";  // seen on OneGo, which has its own fixed drying; not settable by buttons
   if (!(b8 & 0x40)) return "Timed " + std::to_string(b9) + " min";
   switch (b8 & 0x03) {
     case 0: return "Auto: extra dry";
