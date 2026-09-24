@@ -26,6 +26,7 @@ void ElectroluxWashingMachineMacsComponent::decode_ui_(uint8_t target, uint8_t s
             if (tmp_ == 65535) this->remaining_time_sensor_->publish_state(NAN);
             else this->remaining_time_sensor_->publish_state((float) tmp_);
           }
+          this->publish_cycle_();  // keep the estimated end in step with the machine
           break;
         case MACS_TIME_CHANGE_START_DELAY:
           tmp_ = encode_uint16(data[3], data[4]);
@@ -36,6 +37,8 @@ void ElectroluxWashingMachineMacsComponent::decode_ui_(uint8_t target, uint8_t s
             if (tmp_ == 65535) this->start_delay_time_sensor_->publish_state(NAN);
             else this->start_delay_time_sensor_->publish_state(((float) tmp_) / 6);
           }
+          // the countdown frame follows the delayed start state, which may have used the stale one
+          if (this->cycle_.delayed()) this->publish_cycle_();
           break;
         case MACS_TIME_CHANGE_TOTAL_WORK_HOURS:
           tmp_ = encode_uint16(data[3], data[4]);
