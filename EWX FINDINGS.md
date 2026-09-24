@@ -409,17 +409,24 @@ State frame (`52 00 ...`), checked over a full OneGo 1h wash + dry cycle:
 
 | Byte | Value / bits | Meaning |
 |------|--------------|---------|
-| `[2]` | `01` `02` `03` `04` `06` `0B` | idle, running, finished, paused, waiting for door unlock, off (same as EWX14) |
+| `[2]` | `01` `02` `03` `04` `06` `08` `09` `0B` | idle, running, finished, paused, waiting for door unlock, delayed start, error, off (same as EWX14) |
 | `[3]` | `02` `03` `04` `05` | wash, rinse, spin, **drying** (`05` is new) |
 | `[4]` | `08` `10` `20` | changes within a phase: early spin, near the end of drying, finished; meaning unknown |
 | `[5]` | `0x01` | door locked (EWX14 code reads bits 0-1 clear as locked; inverted here) |
 | `[5]` | `0x02` | set for about a second while the door locks or unlocks |
 | `[5]` | `0x04` | drum turning; follows the inverter speed |
+| `[5]` | `0x08` | door open (seen on every open and close with the machine on) |
 | `[5]` | `0x20` | water in the drum: set after each fill, cleared by the following drain |
 | `[7]` | `0x80` | drain pump: pulses at every drain and through the spin |
 
 The inverter (`25`) frame `12 03` matches EWX14: `[2..3]` & 0x7FFF motor rpm, `[6]` water temperature (rose to the 30 °C setpoint while washing), `[19..20]` signed target rpm.
 The max target during a 1200 rpm spin was 12600 motor rpm, so the motor to drum ratio is 10.5.
+
+Delayed start (Cotton, 1 h delay): Start sends `52` state `08` (running binary on, door locks), and the countdown comes in `56 03 01 hh ll` in 10 s units (`0168` = 60 min, down by about 6 a minute). The controller keeps counting down after the delay is cancelled, even with the machine off, so the countdown only means something in state `08`.
+
+Start with the door open: state `09` and alarm frame `57 00 41 41 F4 F4`, read as E40 (door not closed). The next Start with the door closed clears it (`57 00 00 41 F4 F4`; `41` stays in the next byte, which looks like the alarm history).
+
+With the machine off (state `0B`), opening the door is reported (`[5]` = `08`), but closing only comes as a frame with a bad checksum, the same bytes every time (`52 00 0B 00 00 C9 2A 21 09`); opening is also preceded by one (`52 00 0B 00 08 C9 00 2B 03`).
 
 Counters (`56 03 02` / `56 03 03`) before and after the same cycle: working hours x10 went up by 10, and three cycle counters (851, 819, 413) each went up by 1.
 
