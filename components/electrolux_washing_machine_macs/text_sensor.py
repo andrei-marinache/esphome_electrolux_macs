@@ -13,6 +13,7 @@ CONF_PHASE = "phase"
 CONF_DRYING_MODE = "drying_mode"
 CONF_PROGRAM_START = "program_start"
 CONF_ESTIMATED_END = "estimated_end"
+CONF_WASH_START = "wash_start"
 
 TYPES = [
     CONF_ACTIVE_ALARM,
@@ -20,6 +21,7 @@ TYPES = [
     CONF_DRYING_MODE,
     CONF_PROGRAM_START,
     CONF_ESTIMATED_END,
+    CONF_WASH_START,
 ]
 
 CONFIG_SCHEMA = cv.Schema(
@@ -30,6 +32,8 @@ CONFIG_SCHEMA = cv.Schema(
         # Program tracking: need time_id on the hub
         cv.Optional(CONF_PROGRAM_START): text_sensor.text_sensor_schema(device_class=DEVICE_CLASS_TIMESTAMP),
         cv.Optional(CONF_ESTIMATED_END): text_sensor.text_sensor_schema(device_class=DEVICE_CLASS_TIMESTAMP),
+        # When a delayed start will begin washing
+        cv.Optional(CONF_WASH_START): text_sensor.text_sensor_schema(device_class=DEVICE_CLASS_TIMESTAMP),
         cv.Optional(CONF_ACTIVE_ALARM): text_sensor.text_sensor_schema(
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC
         )

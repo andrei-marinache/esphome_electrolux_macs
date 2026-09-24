@@ -29,6 +29,9 @@ void ElectroluxWashingMachineMacsComponent::decode_ui_(uint8_t target, uint8_t s
           break;
         case MACS_TIME_CHANGE_START_DELAY:
           tmp_ = encode_uint16(data[3], data[4]);
+          // 10 s units. The controller keeps counting down after a cancelled delay, even when off,
+          // so this only means something while the state is delayed start (0x08).
+          this->remaining_delay_min_ = tmp_ == 65535 ? NAN : tmp_ / 6.0f;
           if (this->start_delay_time_sensor_) {
             if (tmp_ == 65535) this->start_delay_time_sensor_->publish_state(NAN);
             else this->start_delay_time_sensor_->publish_state(((float) tmp_) / 6);
@@ -107,6 +110,9 @@ void ElectroluxWashingMachineMacsComponent::decode_ui_(uint8_t target, uint8_t s
       }
 #ifdef USE_BINARY_SENSOR
       if (this->door_locked_binary_sensor_) this->door_locked_binary_sensor_->publish_state(door_locked(this->ew8w_, data[5]));
+      // EW8W261B: [5] 0x08 = door open. While the machine is off, opening is reported but closing only
+      // comes as a frame with a bad checksum, so after a close while off this stays on until power on.
+      if (this->door_open_binary_sensor_ && this->ew8w_) this->door_open_binary_sensor_->publish_state((data[5] & 0x08) != 0);
       // EW8W261B, checked over a full wash + dry cycle: [5] 0x04 follows the inverter speed,
       // [5] 0x20 is set from fill until drain, [7] 0x80 pulses at every drain and through the spin
       if (this->drum_turning_binary_sensor_) this->drum_turning_binary_sensor_->publish_state((data[5] & 0x04) != 0);
@@ -249,10 +255,15 @@ void ElectroluxWashingMachineMacsComponent::on_cycle_state_(uint8_t state) {
     if (this->estimated_end_text_sensor_) this->estimated_end_text_sensor_->publish_state(this->iso_time_(now.timestamp));
 #endif
   }
-  bool started = !this->cycle_.active();
+  bool was_delayed = this->cycle_.delayed();
   if (this->cycle_.on_state(state, now.timestamp)) {
     this->cycle_pref_.save(&this->cycle_);
-    if (started && this->cycle_.active()) this->publish_cycle_();
+#ifdef USE_SENSOR
+    // the wait is over, the program progress starts from 0
+    if (was_delayed && this->cycle_.active() && this->start_delay_progress_sensor_)
+      this->start_delay_progress_sensor_->publish_state(100);
+#endif
+    this->publish_cycle_();
   }
   // Clear the values once the machine is switched off or back to setting up a program
   if ((state == MACS_APPLIANCE_STATE_IDLE || state == MACS_APPLIANCE_STATE_STANDBY) && this->cycle_shown_) {
@@ -260,10 +271,12 @@ void ElectroluxWashingMachineMacsComponent::on_cycle_state_(uint8_t state) {
 #ifdef USE_SENSOR
     if (this->elapsed_time_sensor_) this->elapsed_time_sensor_->publish_state(NAN);
     if (this->program_progress_sensor_) this->program_progress_sensor_->publish_state(NAN);
+    if (this->start_delay_progress_sensor_) this->start_delay_progress_sensor_->publish_state(NAN);
 #endif
 #ifdef USE_TEXT_SENSOR
     if (this->program_start_text_sensor_) this->program_start_text_sensor_->publish_state("");
     if (this->estimated_end_text_sensor_) this->estimated_end_text_sensor_->publish_state("");
+    if (this->wash_start_text_sensor_) this->wash_start_text_sensor_->publish_state("");
 #endif
   }
 #endif
@@ -271,10 +284,25 @@ void ElectroluxWashingMachineMacsComponent::on_cycle_state_(uint8_t state) {
 
 void ElectroluxWashingMachineMacsComponent::publish_cycle_() {
 #ifdef USE_TIME
-  if (this->time_ == nullptr || !this->cycle_.active()) return;
+  if (this->time_ == nullptr || !(this->cycle_.active() || this->cycle_.delayed())) return;
   ESPTime now = this->time_->now();
   if (!now.is_valid()) return;
   this->cycle_shown_ = true;
+  if (this->cycle_.delayed()) {
+    if (std::isnan(this->remaining_delay_min_)) return;
+    int64_t wash_start = now.timestamp + (int64_t) (this->remaining_delay_min_ * 60);
+#ifdef USE_SENSOR
+    if (this->start_delay_progress_sensor_)
+      this->start_delay_progress_sensor_->publish_state(
+          cycle_progress(this->cycle_.delay_waited_min(now.timestamp), this->remaining_delay_min_));
+#endif
+#ifdef USE_TEXT_SENSOR
+    if (this->wash_start_text_sensor_) this->wash_start_text_sensor_->publish_state(this->iso_time_(wash_start));
+    if (this->estimated_end_text_sensor_ && !std::isnan(this->remaining_min_))
+      this->estimated_end_text_sensor_->publish_state(this->iso_time_(wash_start + (int64_t) (this->remaining_min_ * 60)));
+#endif
+    return;
+  }
   float elapsed = this->cycle_.elapsed_min(now.timestamp);
 #ifdef USE_SENSOR
   if (this->elapsed_time_sensor_) this->elapsed_time_sensor_->publish_state(elapsed);

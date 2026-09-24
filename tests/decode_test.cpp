@@ -45,7 +45,7 @@ int main() {
   assert(phase_name(0x0C, 0x00) == "Unknown state 0x0C");
   // Program tracking: delayed start not counted, pauses subtracted, reset at the end
   CycleTracker c;
-  assert(!c.on_state(0x08, 1000));  // delayed start: clock not started
+  assert(c.on_state(0x08, 1000) && !c.active());  // delayed start: program clock not started
   assert(c.on_state(0x02, 4600) && c.start == 4600);
   assert(!c.on_state(0x02, 4700));
   assert(c.on_state(0x04, 5200));   // pause after 10 min
@@ -57,6 +57,15 @@ int main() {
   assert(std::isnan(cycle_progress(20, NAN)));
   assert(c.on_state(0x03, 6400) && !c.active());
   assert(!c.on_state(0x0B, 6500));
+  // Delayed start (EW8W261B capture 2026-09-24: 0x08 while waiting, then running)
+  CycleTracker d;
+  assert(d.on_state(0x08, 1000) && d.delayed() && !d.active());
+  assert(!d.on_state(0x08, 1060));
+  assert(d.delay_waited_min(1600) == 10);
+  assert(cycle_progress(d.delay_waited_min(1600), 50) == (float) (100.0 * 10 / 60));
+  assert(d.on_state(0x02, 4600) && d.active() && !d.delayed() && d.elapsed_min(4600) == 0);
+  CycleTracker e;  // delay cancelled
+  assert(e.on_state(0x08, 1000) && e.on_state(0x01, 1200) && !e.delayed());
   assert(utc_offset(3 * 3600) == "+03:00");
   assert(utc_offset(-(5 * 3600 + 30 * 60)) == "-05:30");
   assert(utc_offset(0) == "+00:00");

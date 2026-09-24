@@ -16,14 +16,21 @@ struct CycleTracker {
   int64_t start{0};         // first running state frame of the program, 0 = no program
   int64_t paused_total{0};  // seconds spent paused, finished pauses only
   int64_t pause_since{0};   // start of the current pause, 0 = not paused
+  int64_t delay_start{0};   // first delayed start (0x08) frame, 0 = not waiting
 
-  // Returns true when the tracker changed. A delayed start (0x08) is not counted: the clock starts
-  // at the first running (0x02) frame. Paused (0x04) and waiting for the door (0x06) stop it.
+  // Returns true when the tracker changed. A delayed start (0x08) is tracked apart: the program clock
+  // starts at the first running (0x02) frame. Paused (0x04) and waiting for the door (0x06) stop it.
   bool on_state(uint8_t state, int64_t now) {
     switch (state) {
+      case 0x08:
+        if (this->start == 0 && this->delay_start == 0) {
+          this->delay_start = now;
+          return true;
+        }
+        return false;
       case 0x02:
         if (this->start == 0) {
-          *this = CycleTracker{now, 0, 0};
+          *this = CycleTracker{now, 0, 0, 0};
           return true;
         }
         if (this->pause_since != 0) {
@@ -42,7 +49,7 @@ struct CycleTracker {
       case 0x01:  // idle: cancelled, or a new program being set up
       case 0x03:  // finished
       case 0x0B:  // off
-        if (this->start == 0) return false;
+        if (this->start == 0 && this->delay_start == 0) return false;
         *this = CycleTracker{};
         return true;
       default:
@@ -51,6 +58,10 @@ struct CycleTracker {
   }
 
   bool active() const { return this->start != 0; }
+  bool delayed() const { return this->start == 0 && this->delay_start != 0; }
+
+  // Minutes waited so far for a delayed start.
+  float delay_waited_min(int64_t now) const { return (now - this->delay_start) / 60.0f; }
 
   // Minutes the program has actually been running, pauses excluded.
   float elapsed_min(int64_t now) const {
@@ -59,8 +70,8 @@ struct CycleTracker {
   }
 };
 
-// Share of the program done, from the time run so far and the time the machine says is left.
-// Capped at 99 until the machine reports finished.
+// Share of the program (or of the start delay) done, from the time gone so far and the time the
+// machine says is left. Capped at 99 until the machine moves on.
 inline float cycle_progress(float elapsed_min, float remaining_min) {
   if (std::isnan(remaining_min) || elapsed_min + remaining_min <= 0) return NAN;
   return std::min(99.0f, 100.0f * elapsed_min / (elapsed_min + remaining_min));
