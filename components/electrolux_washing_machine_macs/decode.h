@@ -81,6 +81,7 @@ inline std::string phase_name(uint8_t state, uint8_t phase) {
         case 0x03: return "Rinse";
         case 0x04: return "Spin";
         case 0x05: return "Drying";
+        case 0x08: return "Anti-crease";  // EW8W261B: after the spin, remaining time 0, door still locked
         default: return hex_code("Unknown phase", phase);
       }
     case 0x03: return "Finished";

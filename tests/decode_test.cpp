@@ -42,6 +42,7 @@ int main() {
   assert(phase_name(0x02, 0x03) == "Rinse");
   assert(phase_name(0x02, 0x05) == "Drying");
   assert(phase_name(0x02, 0x07) == "Unknown phase 0x07");
+  assert(phase_name(0x02, 0x08) == "Anti-crease");
   assert(phase_name(0x0C, 0x00) == "Unknown state 0x0C");
   // Program tracking: delayed start not counted, pauses subtracted, reset at the end
   CycleTracker c;

@@ -410,7 +410,7 @@ State frame (`52 00 ...`), checked over a full OneGo 1h wash + dry cycle:
 | Byte | Value / bits | Meaning |
 |------|--------------|---------|
 | `[2]` | `01` `02` `03` `04` `06` `08` `09` `0B` | idle, running, finished, paused, waiting for door unlock, delayed start, error, off (same as EWX14) |
-| `[3]` | `02` `03` `04` `05` | wash, rinse, spin, **drying** (`05` is new) |
+| `[3]` | `02` `03` `04` `05` `08` | wash, rinse, spin, **drying** (`05` is new), **anti-crease** (`08`: after the spin of a Cotton cycle, remaining time 0, anti-crease option on, door still locked) |
 | `[4]` | `08` `10` `20` | changes within a phase: early spin, near the end of drying, finished; meaning unknown |
 | `[5]` | `0x01` | door locked (EWX14 code reads bits 0-1 clear as locked; inverted here) |
 | `[5]` | `0x02` | set for about a second while the door locks or unlocks |
