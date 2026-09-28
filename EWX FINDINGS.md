@@ -426,7 +426,7 @@ Delayed start (Cotton, 1 h delay): Start sends `52` state `08` (running binary o
 
 Start with the door open: state `09` and alarm frame `57 00 41 41 F4 F4`, read as E40 (door not closed). The next Start with the door closed clears it (`57 00 00 41 F4 F4`; `41` stays in the next byte, which looks like the alarm history).
 
-With the machine off (state `0B`), opening the door is reported (`[5]` = `08`), but closing only comes as a frame with a bad checksum, the same bytes every time (`52 00 0B 00 00 C9 2A 21 09`); opening is also preceded by one (`52 00 0B 00 08 C9 00 2B 03`).
+With the machine off (state `0B`), every door open and close starts with a frame cut short after 5 data bytes, followed right away by the full frame sent again. A parser that trusts the length byte reads the start of the next frame as the rest of the cut one (`52 00 0B 00 00 C9 2A 21 09`, the `C9 2A 21 09` being the header of the resent state frame), gets a bad checksum and loses the next frame too: 3 of 9 closes in one test. When the next frame is the `2B` heartbeat (`… C9 00 2B 03`), only the heartbeat is lost. The parser now starts again from a marker found inside a frame with a bad checksum, so the resent frame is read.
 
 Counters (`56 03 02` / `56 03 03`) before and after the same cycle: working hours x10 went up by 10, and three cycle counters (851, 819, 413) each went up by 1.
 

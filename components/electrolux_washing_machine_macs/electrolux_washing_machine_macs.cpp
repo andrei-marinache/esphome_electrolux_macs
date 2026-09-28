@@ -113,8 +113,8 @@ void ElectroluxWashingMachineMacsComponent::decode_ui_(uint8_t target, uint8_t s
       }
 #ifdef USE_BINARY_SENSOR
       if (this->door_locked_binary_sensor_) this->door_locked_binary_sensor_->publish_state(door_locked(this->ew8w_, data[5]));
-      // EW8W261B: [5] 0x08 = door open. While the machine is off, opening is reported but closing only
-      // comes as a frame with a bad checksum, so after a close while off this stays on until power on.
+      // EW8W261B: [5] 0x08 = door open. While the machine is off, every open and close
+      // starts with a cut frame that the framer resyncs past (see framer.h).
       if (this->door_open_binary_sensor_ && this->ew8w_) this->door_open_binary_sensor_->publish_state((data[5] & 0x08) != 0);
       // EW8W261B, checked over a full wash + dry cycle: [5] 0x04 follows the inverter speed,
       // [5] 0x20 is set from fill until drain, [7] 0x80 pulses at every drain and through the spin
